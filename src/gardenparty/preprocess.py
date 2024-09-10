@@ -188,6 +188,12 @@ def autocrop_and_straighten(image_path, output_path) -> None:
     print(f"Processed image saved as {output_path}")
 
 
+def save_image_as(source: str, target: str) -> None:
+    image = cv2.imread(source)
+    cv2.imwrite(target, image)
+    print(f"Image saved as {target}")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     autocrop_and_straighten('instance/img_2106.jpg', 'instance/preprocessed_img_2106.jpg')
