@@ -48,13 +48,13 @@ async def image_to_image(img:str) -> Dict:
 
     print('settings.original_images_dir: ', settings.original_images_dir)
 
-    # if directories do not exist, create them
-    if not os.path.exists(settings.original_images_dir):
-        os.makedirs(settings.original_images_dir)
+    # # if directories do not exist, create them
+    # if not os.path.exists(settings.original_images_dir):
+    #     os.makedirs(settings.original_images_dir)
 
-    # if directories do not exist, create them
-    if not os.path.exists(settings.generated_images_dir):
-        os.makedirs(settings.generated_images_dir)
+    # # if directories do not exist, create them
+    # if not os.path.exists(settings.generated_images_dir):
+    #     os.makedirs(settings.generated_images_dir)
 
     # try with: ./src/gardenparty/images_input/hunger_in_the_olden_days.jpg
     input_filename = os.path.join(settings.original_images_dir, img)

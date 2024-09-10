@@ -16,8 +16,8 @@ class Vote(BaseModel):
 
 
 class Settings(BaseSettings):
-    original_images_dir: Path = Field(Path("/app/instance/original"), help="Directory to store original images")
-    generated_images_dir: Path = Field(Path("/app/instance/generated"), help="Directory to store generated images")
+    original_images_dir: Path = Field(Path("./instance/original"), help="Directory to store original images")
+    generated_images_dir: Path = Field(Path("./instance/generated"), help="Directory to store generated images")
     
 
     # to read API keys etc. from environment variables model_config should be defined in here

@@ -20,3 +20,6 @@ If you want to test for example backend then replace `.voting` with `.backend`.
 
 - When using the models you should have .env file in your folder structure. Do not put it in `src/*`. The `.env` file must contain the environment variables (such as `OPENAI_API_KEY`) and they need to be declared in the `Settings` class in file `models.py`. 
 
+<b>Example of .env content:</b>
+OPENAI_API_KEY="abc123..."
+STABILITYAI_API_KEY="xyz987..."
