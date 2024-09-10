@@ -41,6 +41,7 @@ def get_llm_response(prompt:str) -> Dict:
 
 @app.get("/get_image/{prompt}")
 def get_generated_image(prompt:str) -> str:
+    """When given a prompt returns a url to image of whatever dall-e  drew."""
     from openai import OpenAI
     from .app import settings
     # set up client credentials
