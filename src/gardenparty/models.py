@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from pathlib import Path
 
@@ -18,3 +18,8 @@ class Vote(BaseModel):
 class Settings(BaseSettings):
     original_images_dir: Path = Field(Path("/app/instance/original"), help="Directory to store original images")
     generated_images_dir: Path = Field(Path("/app/instance/generated"), help="Directory to store generated images")
+    
+
+    # to read API keys etc. from environment variables model_config should be defined in here
+    OPENAI_API_KEY:str = ""
+    model_config = SettingsConfigDict(env_file=".env")
