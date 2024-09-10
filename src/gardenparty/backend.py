@@ -39,24 +39,7 @@ def get_llm_response(prompt:str) -> Dict:
     results = some_llm_provider(prompt)
     return results
 
-
-@app.get("/get_image/{prompt}")
-def get_generated_image(prompt:str) -> str:
-    """When given a prompt returns a url to image of whatever dall-e  drew."""
-    from openai import OpenAI
-    from .app import settings
-    # set up client credentials
-    client = OpenAI(
-            api_key=settings.OPENAI_API_KEY,
-            )
-
-    response = client.images.generate(
-    model="dall-e-3",
-    prompt=f"{prompt}",
-    size="1024x1024",
-    quality="standard",
-    n=1,
-    )
-
-    image_url = response.data[0].url
-    return image_url
+@app.get("img_to_image/{img}")
+def image_to_image(img:str) -> str:
+    """Image to image using stable diffusion's service."""
+    pass
