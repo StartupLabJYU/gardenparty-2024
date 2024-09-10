@@ -40,17 +40,16 @@ templates = Jinja2Templates(directory="/app/src/gardenparty/templates")
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    # https://fastapi.tiangolo.com/advanced/templates/#using-jinja2templates
-    # get_biased_pair()
+    images = get_biased_pair()
     vote_token = str(uuid.uuid4())
-    img1_name = "Image 1"
-    img2_name = "Image 2"
+    img1_name = images[0].split("/")[-1]
+    img2_name = images[1].split("/")[-1]
     current_voting_tokens[vote_token] = [img1_name, img2_name]
     return templates.TemplateResponse(
         name="front.html", 
         context={
-            "img1": "https://picsum.photos/300?random=1", 
-            "img2": "https://picsum.photos/300?random=2",
+            "img1": images[0], 
+            "img2": images[1],
             "img1_name": img1_name,
             "img2_name": img2_name,
             "vote_token": vote_token,
@@ -79,19 +78,40 @@ def vote(vote: Vote):
    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get('/vote')
-def get_votes():
+@app.get('/winner')
+def winner(request: Request):
     """"
-    Frontend can use this endpoint to get the number of votes.
+    Returns the current winner image and id
     """
     try:
-        votes = []
+        rows = []
         with open(CSV_FILE_PATH, mode='r') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                votes.append(row)
+                rows.append(row)
+        # Count the number of wins for each image
+        votes = {}
+        for row in rows:
+            if row['Winner'] in votes:
+                votes[row['Winner']] += 1
+            else:
+                votes[row['Winner']] = 1
+        # Order the votes by the number of wins
+        votes = dict(sorted(votes.items(), key=lambda item: item[1], reverse=True))
 
-        return votes
+        # Get the winner image and id
+        winner_id = list(votes.keys())[0]
+
+        # Return the winner image and id
+        return templates.TemplateResponse(
+            name="winner.html", 
+            context={
+                "image_id": winner_id,
+                "image_url": f"/generated_images/{winner_id}",
+                "request": request
+            }
+        )
+
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -102,8 +122,9 @@ def get_biased_pair():
     TODO: Read the vote, and use biased sampling to return a pair of images.
     """
     # For now select two random images from settings.generated_images_dir
-    images = list(settings.generated_images_dir.glob('*.png'))
-    return random.sample(images, k=2)
+    images = list(settings.generated_images_dir.glob('*'))
+    image_paths = [f"/generated_images/{img.name}" for img in images]
+    return random.sample(image_paths, k=2)
 
 
 @app.get('/gallery')
