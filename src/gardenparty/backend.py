@@ -35,9 +35,10 @@ def some_llm_provider(prompt:str) -> Dict:
 
 @app.get("/call_llm/{prompt}")
 def get_llm_response(prompt:str) -> Dict:
-    """Send given prompt to LLM provider."""
+    """Send given prompt to LLM provider and do expect a textual answer back."""
     results = some_llm_provider(prompt)
     return results
+
 
 @app.get("/get_image/{prompt}")
 def get_generated_image(prompt:str) -> str:
