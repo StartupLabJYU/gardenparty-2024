@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import csv
 import os
+import time
 import random
 import uuid
 from .app import create_app, settings
@@ -23,7 +24,7 @@ current_voting_tokens = {}
 if not os.path.exists(CSV_FILE_PATH):
     with open(CSV_FILE_PATH, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['Image 1', 'Image 2', 'Winner'])  # Write header if the file is created
+        writer.writerow(['Image 1', 'Image 2', 'Winner', 'Timestamp'])  # Write header if the file is created
 
 
 # Pydantic model for vote data validation
@@ -34,6 +35,7 @@ class Vote(BaseModel):
     vote_token: str
 
 app.mount("/static", StaticFiles(directory="/app/src/gardenparty/static"), name="static")
+app.mount("/generated_images", StaticFiles(directory="/app/instance/generated"), name="images")
 templates = Jinja2Templates(directory="/app/src/gardenparty/templates")
 
 @app.get("/", response_class=HTMLResponse)
@@ -71,7 +73,7 @@ def vote(vote: Vote):
         # Append the vote to the CSV file
         with open(CSV_FILE_PATH, mode='a', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow([vote.img1, vote.img2, vote.winner])
+            writer.writerow([vote.img1, vote.img2, vote.winner, str(time.time())])
             current_voting_tokens.pop(vote.vote_token)
         return f"Voted for {vote.winner}!"
    except Exception as e:
@@ -105,9 +107,24 @@ def get_biased_pair():
 
 
 @app.get('/gallery')
-def gallery():
+def gallery(request: Request):
     """
-    Returns a list of all images in the generated_images_dir
+    Returns a list of all images in the generated_images.
+    Include all image type files
     """
-    images = list(settings.generated_images_dir.glob('*.png'))
-    return [str(image) for image in images]
+    return templates.TemplateResponse(
+        name="gallery.html", 
+        context={
+            "request": request
+        }
+    )
+
+@app.get('/get_all_images')
+def get_all_images():
+    """
+    Returns a list of all images in the generated_images.
+    Include all image type files
+    """
+    images = list(settings.generated_images_dir.glob('*'))
+    image_paths = [f"/generated_images/{img.name}" for img in images]
+    return image_paths
