@@ -27,6 +27,12 @@
                 "--reload"
             ],
             "jinja": true
-        }
+        },
+        {
+            "name": "Frontend",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "gardenparty.frontend"
+        },
     ]
 }
