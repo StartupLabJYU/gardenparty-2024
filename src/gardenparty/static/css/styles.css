@@ -3,10 +3,13 @@ body {
     text-align: center;
     margin: 0;
     padding: 20px;
+    background-color: #2c2f33; /* Dark background */
+    color: #ffffff; /* Light text color */
 }
 
-h1 {
+h1, h2 {
     margin-bottom: 20px;
+    color: #f5f5f5; /* Lighter header text */
 }
 
 .image-container {
@@ -19,7 +22,9 @@ h1 {
     width: 300px;
     height: auto;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s, border-radius 0.2s;
+    border-radius: 10px; /* Rounded edges for images */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Shadow for a modern look */
 }
 
 .voting-image:hover {
@@ -29,4 +34,48 @@ h1 {
 .voting-image.clicked {
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+.message {
+    margin-top: 30px;
+    font-size: 1.2em;
+}
+
+/* Styles for the countdown circle */
+.base-timer {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 20px auto;
+}
+
+.base-timer__svg {
+    transform: scaleX(-1);
+}
+
+.base-timer__path-elapsed {
+    fill: none;
+    stroke: #f3f3f3;
+    stroke-width: 7px;
+}
+
+.base-timer__path-remaining {
+    fill: none;
+    stroke-width: 7px;
+    stroke-linecap: round;
+    transform: rotate(90deg);
+    transform-origin: center;
+    transition: 1s linear all;
+    stroke: #4caf50; /* Initial color of the timer */
+}
+
+.base-timer__label {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
 }

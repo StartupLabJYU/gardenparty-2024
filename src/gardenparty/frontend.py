@@ -12,7 +12,8 @@ from gardenparty.app import settings
 
 # Disable telemetry
 
-os.environ["GRADIO_TELEMETRY"] = "0"
+os.environ.setdefault("GRADIO_TELEMETRY", "0")
+os.environ.setdefault("GRADIO_SERVER_NAME", "0.0.0.0")
 
 def acquire(img_input, auto_adjust=True):
 

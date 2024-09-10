@@ -37,5 +37,8 @@ indent-width = 4
 [tool.black]
 line-length = 120
 
-# Avoid enforcing line-length violations (`E501`)
-ignore = ["E501"]
+
+ignore = [
+    "E501",  # Avoid enforcing line-length violations
+    "B104"   # Ignore hardcoded listen all
+]
