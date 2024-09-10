@@ -1,6 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     const images = document.querySelectorAll('.voting-image');
     const imageContainer = document.querySelector('.image-container');
+    const messageDiv = document.getElementById('message');
+    const headline = document.getElementById('headline');
+
+    const FULL_DASH_ARRAY = 283;
+    const TIME_LIMIT = 5;
+    let timePassed = 0;
+    let timeLeft = TIME_LIMIT;
+    let timerInterval = null;
 
     images.forEach(image => {
         image.addEventListener('click', () => handleVote(image));
@@ -33,26 +41,48 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             if (response.ok) {
-                // Request new images from the server
-                return response.json();
+                // Hide images and headline, then show the message
+                imageContainer.style.display = 'none';
+                headline.style.display = 'none';
+                messageDiv.style.display = 'block';
+
+                // Start countdown animation
+                startTimer();
             } else {
                 throw new Error('Failed to submit vote');
             }
-        })
-        .then(newImages => {
-            // Update images with new ones from the server
-            image1.src = newImages.image1;
-            image2.src = newImages.image2;
-
-            // Re-enable clicks
-            images.forEach(image => {
-                image.classList.remove('clicked');
-                image.addEventListener('click', () => handleVote(image));
-            });
         })
         .catch(error => {
             console.error('Error:', error);
             alert('An error occurred, please try again.');
         });
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timePassed += 1;
+            timeLeft = TIME_LIMIT - timePassed;
+            document.getElementById('base-timer-label').innerHTML = timeLeft;
+
+            if (timeLeft === 0) {
+                // clearInterval(timerInterval);
+                location.reload();
+            } else {
+                setCircleDasharray();
+            }
+        }, 1000);
+    }
+
+    function calculateTimeFraction() {
+        const rawTimeFraction = timeLeft / TIME_LIMIT;
+        // return rawTimeFraction - (1 / TIME_LIMIT) * (1 - rawTimeFraction);
+        return rawTimeFraction - (1 / TIME_LIMIT);
+    }
+
+    function setCircleDasharray() {
+        const circleDasharray = `${(calculateTimeFraction() * FULL_DASH_ARRAY).toFixed(0)} 283`;
+        document
+            .getElementById('base-timer-path-remaining')
+            .setAttribute('stroke-dasharray', circleDasharray);
     }
 });
