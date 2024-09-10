@@ -5,6 +5,19 @@ import os
 app = create_app()
 
 # Add routes
+@app.get("/all_templates")
+def get_templates() -> Dict:
+    """Returns a dictionary object with the list of templates to select."""
+    if os.path.exists("./src/gardenparty/prompt_templates"):
+        files = []
+        print("Prompt templates exists")
+        for root, dirnames, filenames in os.walk('./src/gardenparty/prompt_templates/'):
+            for filename in filenames:
+                files.append(os.path.join(root, filename))
+        
+        return {'files':files}
+    return {'files':None}
+
 
 # calls to server and external 3rd parties
 def some_llm_provider(prompt:str) -> Dict: 

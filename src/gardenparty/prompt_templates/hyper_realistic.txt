@@ -1,0 +1,1 @@
+User's prompt is this: {prompt}. Make environment of the image as realistic as possible. Focus promoting unity in IT faculty.
