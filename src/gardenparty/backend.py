@@ -38,3 +38,23 @@ def get_llm_response(prompt:str) -> Dict:
     """Send given prompt to LLM provider."""
     results = some_llm_provider(prompt)
     return results
+
+@app.get("/get_image/{prompt}")
+def get_generated_image(prompt:str) -> str:
+    from openai import OpenAI
+    from .app import settings
+    # set up client credentials
+    client = OpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            )
+
+    response = client.images.generate(
+    model="dall-e-3",
+    prompt=f"{prompt}",
+    size="1024x1024",
+    quality="standard",
+    n=1,
+    )
+
+    image_url = response.data[0].url
+    return image_url
