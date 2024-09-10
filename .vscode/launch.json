@@ -5,13 +5,25 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: FastAPI",
+            "name": "Voting",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
             "args": [
                 "--host=0.0.0.0",
-                "gardenparty.app:app",
+                "gardenparty.voting:app",
+                "--reload"
+            ],
+            "jinja": true
+        },
+        {
+            "name": "Backend",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "--host=0.0.0.0",
+                "gardenparty.backend:app",
                 "--reload"
             ],
             "jinja": true

@@ -1,7 +1,7 @@
 # This is for local development purposes
 services:
-  app:
-    # FastAPI
+  frontend:
+    container_name: frontend
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,6 +10,23 @@ services:
       - "8000:8000"
     volumes:
       - .:/app:cached
-
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - .:/app:cached
+    command: poetry run uvicorn --host=0.0.0.0 --port=8000 gardenparty.backend:app
+  voting:
+    container_name: voting
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - .:/app:cached
+    command: poetry run uvicorn --host=0.0.0.0 --port=8000 gardenparty.voting:app

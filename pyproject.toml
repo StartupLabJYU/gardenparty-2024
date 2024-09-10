@@ -9,13 +9,13 @@ packages = [
     { include = "gardenparty", from = "src/" },
 ]
 
-
 [tool.poetry.dependencies]
 python = "^3.12"
 uvicorn = "^0.30.6"
 gradio = "^4.43.0"
 opencv-python-headless = "^4.10.0.84"
 numpy = "^2.1.1"
+pydantic-settings = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
 poetry = "^1.8.3"
