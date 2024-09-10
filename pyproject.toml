@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "gardenparty"
+version = "0.1.0"
+description = "App for JYU IT Garden party"
+authors = ["Teemu Autto <teemu.a.autto@jyu.fi>"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    { include = "gardenparty", from = "src/" },
+]
+
+
+[tool.poetry.dependencies]
+python = "^3.12"
+uvicorn = "^0.30.6"
+gradio = "^4.43.0"
+opencv-python-headless = "^4.10.0.84"
+numpy = "^2.1.1"
+
+[tool.poetry.group.dev.dependencies]
+poetry = "^1.8.3"
+python-dotenv = "^1.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+[tool.black]
+line-length = 120
+
+# Avoid enforcing line-length violations (`E501`)
+ignore = ["E501"]

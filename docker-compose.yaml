@@ -1,0 +1,15 @@
+# This is for local development purposes
+services:
+  app:
+    # FastAPI
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app:cached
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
