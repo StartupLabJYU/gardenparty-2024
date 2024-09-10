@@ -154,3 +154,30 @@ async def image_to_image(img:str, prompt:str, seed:int=42, strength:float=0.6):
         if response.json()['name'] == 'content_moderation':
             return {"result": "Dirty word detected!", "prompt":prompt, "strength":strength, "seed":seed, "response": str(response.json())}
         
+
+def merge_template_prompt(prompt_template:str, description:str):
+    """Merge selected prompt template with description of the scanned image."""
+    # set up client credentials
+    client = OpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            )
+
+    # make the call with chosen model
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {
+                "role": "user",
+                "content": f"Merge these user inputs into a prompt for creating an image. INPUT 1: {prompt_template}, INPUT 2: {description}."
+            }
+        ]
+    )
+
+    # return reply in a dict
+    #print(completion.choices[0].message)
+    return {
+        'prompt_template': prompt_template, 
+        'description':description, 
+        'reply':completion.choices[0].message.content
+        }
