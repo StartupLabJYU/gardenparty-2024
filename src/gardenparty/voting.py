@@ -13,7 +13,7 @@ from fastapi import FastAPI, Request
 
 app = create_app()
 # Path to the CSV file where the votes will be stored
-CSV_FILE_PATH = 'vote_results.csv'
+CSV_FILE_PATH = 'instance/vote_results.csv'
 
 # Ensure CSV file exists and has the header
 if not os.path.exists(CSV_FILE_PATH):
