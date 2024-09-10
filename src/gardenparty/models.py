@@ -22,4 +22,5 @@ class Settings(BaseSettings):
 
     # to read API keys etc. from environment variables model_config should be defined in here
     OPENAI_API_KEY:str = ""
+    STABILITYAI_API_KEY:str = ""
     model_config = SettingsConfigDict(env_file=".env")
