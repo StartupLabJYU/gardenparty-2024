@@ -23,10 +23,10 @@ def create_app():
 
     @app.on_event("startup")
     async def startup_event():
-
-        pathlib.Path("instance").mkdir(exist_ok=True, mode=0o777)
-        pathlib.Path("instance/generated").mkdir(exist_ok=True, mode=0o777)
-        pathlib.Path("instance/original").mkdir(exist_ok=True, mode=0o777)
+        # Create the instance folder if it doesn't exist
+        
+        pathlib.Path(settings.original_images_dir).mkdir(exist_ok=True, mode=0o777, parents=True)
+        pathlib.Path(settings.original_images_dir).mkdir(exist_ok=True, mode=0o777, parents=True)
         csv_path = pathlib.Path("instance/vote_results.csv", mode=0o777)
         if not csv_path.exists():
             with open(csv_path, mode='w', newline='') as csv_file:
