@@ -8,10 +8,13 @@ app = create_app()
 
 
 # calls to server and external 3rd parties
-def some_library(prompt:str) -> str: 
+def some_llm_provider(prompt:str) -> str: 
+    """Use some LLM provider to get a response to prompt."""
+    
     return prompt + " world"
 
 @app.get("/call_llm/{prompt}")
 def get_llm_response(prompt:str) -> str:
-    results = some_library(prompt)
+    """Send given prompt to LLM provider."""
+    results = some_llm_provider(prompt)
     return results 
