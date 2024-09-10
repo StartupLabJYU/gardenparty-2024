@@ -7,11 +7,11 @@ services:
       dockerfile: Dockerfile
       target: development
     ports:
-      - "8000:8000"
+      - "7860:7860"
     volumes:
       - .:/app:cached
     # Overrides default command so things don't shut down after the process ends.
-    command: sleep infinity
+    command: poetry run python -m gardenparty.frontend
   backend:
     container_name: backend
     build:
