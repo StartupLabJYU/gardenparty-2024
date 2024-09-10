@@ -40,26 +40,18 @@ def get_llm_response(prompt:str) -> Dict:
     return results
 
 
-@app.get("/img_to_image/{img}")
-async def image_to_image(img:str) -> Dict:
+@app.get("/img_to_image/{strength}/{img}/{prompt}")
+@app.get("/img_to_image/{img}/{prompt}")
+async def image_to_image(img:str, prompt:str, seed:int=42, strength:float=0.6):
     """Image to image using stable diffusion's service. Please note that the image file name must end with .jpg not .jpeg."""
     import requests
     from .app import settings
 
     print('settings.original_images_dir: ', settings.original_images_dir)
 
-    # # if directories do not exist, create them
-    # if not os.path.exists(settings.original_images_dir):
-    #     os.makedirs(settings.original_images_dir)
-
-    # # if directories do not exist, create them
-    # if not os.path.exists(settings.generated_images_dir):
-    #     os.makedirs(settings.generated_images_dir)
-
-    # try with: ./src/gardenparty/images_input/hunger_in_the_olden_days.jpg
+    # You can try with: ./original/hunger_in_the_olden_days.jpg
     input_filename = os.path.join(settings.original_images_dir, img)
-    #print(input_filename)
-
+    
     response = requests.post(
         f"https://api.stability.ai/v2beta/stable-image/generate/sd3",
         headers={
@@ -70,13 +62,13 @@ async def image_to_image(img:str) -> Dict:
             "image": open(input_filename, "rb"),
         },
         data={
-            "prompt": "Lighthouse on a cliff overlooking the ocean",
+            "prompt": prompt,
             "image": input_filename,
             "output_format": "jpeg",
-            "strength":0.2,
+            "strength":strength,
             "mode":"image-to-image",
             "model":"sd3-medium",
-            "seed":42,
+            "seed":seed,
             "negative_prompt":"penis"
         },
     )
@@ -86,8 +78,9 @@ async def image_to_image(img:str) -> Dict:
         with open(output_filename, 'wb') as file:
             file.write(response.content)
         
-        return {"result": 200}
+        return {"result": 200, "prompt":prompt, "strength":strength, "seed":seed}
 
     else:
-        return {"result": Exception(str(response.json())), "response": response}
+        if response.json()['name'] == 'content_moderation':
+            return {"result": "Dirty word detected!", "prompt":prompt, "strength":strength, "seed":seed, "response": str(response.json())}
         
