@@ -23,6 +23,8 @@ def create_app():
     @app.on_event("startup")
     async def startup_event():
         pathlib.Path("instance").mkdir(exist_ok=True)
+        pathlib.Path("instance/generated").mkdir(exist_ok=True)
+        pathlib.Path("instance/original").mkdir(exist_ok=True)
 
     return app
 
