@@ -5,6 +5,7 @@ body {
     padding: 20px;
     background-color: #2c2f33; /* Dark background */
     color: #ffffff; /* Light text color */
+    overflow-x: hidden; /* Prevent horizontal overflow */
 }
 
 h1, h2 {
@@ -16,11 +17,14 @@ h1, h2 {
     display: flex;
     justify-content: center;
     gap: 20px;
+    flex-wrap: wrap; /* Allows images to stack on smaller screens */
 }
 
 .voting-image {
-    width: 300px;
+    width: 100%; /* Make images responsive */
+    max-width: 300px; /* Maintain the original size limit */
     height: auto;
+    max-height: 40vh; /* Limit the height relative to viewport height */
     cursor: pointer;
     transition: transform 0.2s, border-radius 0.2s;
     border-radius: 10px; /* Rounded edges for images */
@@ -78,4 +82,32 @@ h1, h2 {
     align-items: center;
     justify-content: center;
     font-size: 20px;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 600px) {
+    .image-container {
+        flex-direction: column; /* Stack images vertically */
+        gap: 10px; /* Smaller gap between stacked images */
+        padding: 0 10px; /* Reduce padding to maximize space */
+    }
+
+    .voting-image {
+        width: 90vw; /* Adjust width to fit within the viewport */
+        max-height: 40vh; /* Limit height to 40% of the viewport */
+        margin: 0 auto; /* Center images on smaller screens */
+    }
+
+    .message {
+        font-size: 1em; /* Slightly smaller text for better mobile readability */
+    }
+
+    .base-timer {
+        width: 80px; /* Smaller timer for mobile */
+        height: 80px;
+    }
+
+    .base-timer__label {
+        font-size: 16px; /* Adjust font size of the countdown label */
+    }
 }
