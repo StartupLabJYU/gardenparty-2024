@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
         timerInterval = setInterval(() => {
             timePassed += 1;
             timeLeft = TIME_LIMIT - timePassed;
-            document.getElementById('base-timer-label').innerHTML = timeLeft;
 
             if (timeLeft === 0) {
                 // clearInterval(timerInterval);
