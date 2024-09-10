@@ -1,7 +1,10 @@
-from .app import create_app
+from .app import create_app, settings
+import base64
 from fastapi import FastAPI
-from typing import Union, Dict # use together with FastAPI
+from openai import OpenAI
 import os
+import requests
+from typing import Union, Dict # use together with FastAPI
 app = create_app()
 
 # Add routes
@@ -19,11 +22,65 @@ def get_templates() -> Dict:
     return {'files':None}
 
 
+@app.get("/describe_image/{img}")
+def describe_image(img:str) -> Dict:
+    """Using OpenAI describe the content of given image."""
+
+    # You can try with: ./original/hunger_in_the_olden_days.jpg
+    input_filename = os.path.join(settings.original_images_dir, img)
+    print('input_filename: ', input_filename)
+    print('os.getcwd(): ', os.getcwd())
+
+    # Function to encode the image
+    def encode_image(image_path):
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
+
+    # Getting the base64 string
+    base64_image = encode_image(input_filename)
+
+    # set up client credentials
+    headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {settings.OPENAI_API_KEY}"
+    }
+
+    # set encoded image to request body
+    payload = {
+    "model": "gpt-4o-mini",
+    "messages": [
+        {
+        "role": "user",
+        "content": [
+            {
+            "type": "text",
+            "text": "What’s in this image?"
+            },
+            {
+            "type": "image_url",
+            "image_url": {
+                "url": f"data:image/jpeg;base64,{base64_image}"
+            }
+            }
+        ]
+        }
+    ],
+    "max_tokens": 300
+    }
+
+    # get description
+    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+
+    #print(response.json()['choices'][0]['message']['content'])
+    
+    # return reply in a dict
+    return {'img': input_filename, 'reply':response.json()['choices'][0]['message']['content']}
+
+
 # calls to server and external 3rd parties
 def some_llm_provider(prompt:str) -> Dict: 
     """Use some LLM provider to get a response to prompt."""
-    from openai import OpenAI
-    from .app import settings
+
     # set up client credentials
     client = OpenAI(
             api_key=settings.OPENAI_API_KEY,
