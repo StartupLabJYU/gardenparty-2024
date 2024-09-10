@@ -28,7 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = {
             img1: image1.getAttribute('data-name'),
             img2: image2.getAttribute('data-name'),
-            winner: clickedImage.getAttribute('data-name')
+            winner: clickedImage.getAttribute('data-name'),
+            vote_token: document.getElementById('vote_token').value
         };
 
         // Send the vote to the server
