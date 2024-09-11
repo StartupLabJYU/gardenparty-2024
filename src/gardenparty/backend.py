@@ -6,6 +6,7 @@ import base64
 from fastapi import FastAPI
 from openai import OpenAI
 import os
+import pathlib
 import requests
 from typing import Union, Dict # use together with FastAPI
 
@@ -142,10 +143,10 @@ async def image_to_image(img:str, prompt:str, seed:int=42, strength:float=0.6):
     """Image to image using stable diffusion's service. Please note that the image file name must end with .jpg not .jpeg."""
     
 
-    print('settings.original_images_dir: ', settings.original_images_dir)
+    print('settings.original_images_dir: ', settings.INSTANCE_PATH / 'original' / img)
 
     # You can try with: ./original/hunger_in_the_olden_days.jpg
-    input_filename = os.path.join(settings.original_images_dir, img)
+    input_filename = settings.INSTANCE_PATH / 'original' / img
     
     response = requests.post(
         f"https://api.stability.ai/v2beta/stable-image/generate/sd3",
@@ -170,11 +171,11 @@ async def image_to_image(img:str, prompt:str, seed:int=42, strength:float=0.6):
 
     if response.status_code == 200:
         print("200")
-        output_filename = os.path.join(settings.generated_images_dir, img)
+        output_filename = settings.INSTANCE_PATH / 'generated'/ img
         with open(output_filename, 'wb') as file:
             file.write(response.content)
         
-        return {"result": 200, "prompt":prompt, "strength":strength, "seed":seed, 'output_filename':os.path.join(settings.generated_images_dir, img)}
+        return {"result": 200, "prompt":prompt, "strength":strength, "seed":seed, 'output_filename':settings.INSTANCE_PATH / 'generated'/ img }
 
     else:
         if response.json()['name'] == 'content_moderation':
