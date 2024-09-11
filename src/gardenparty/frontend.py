@@ -15,6 +15,15 @@ from gardenparty.app import settings
 os.environ.setdefault("GRADIO_TELEMETRY", "0")
 os.environ.setdefault("GRADIO_SERVER_NAME", "0.0.0.0")
 
+DESCRIPTION = r"""
+## IT-Faculty Garden Party 2024: The AI patcher
+
+1. Acquire an image using the camer or upload an image
+2. (Optional) Fill in your email address to participate in the contest
+3. Let the AI patcher do its magic
+4. Vote for the best AI-patched image
+"""
+
 def acquire(img_input, auto_adjust=True):
 
     # Generate a random UUID for the output file
@@ -29,6 +38,9 @@ def acquire(img_input, auto_adjust=True):
 
 with gr.Blocks(theme=gr.themes.Soft()) as app:
     log_messages = gr.State([])
+    with gr.Row():
+        gr.Markdown(DESCRIPTION)
+        email = gr.Textbox(label="Email", placeholder="Email", info="Email address is only used to inform winners of the contest")
     with gr.Row():
         with gr.Column():
             img_input = gr.Image(type="filepath", sources=["webcam", "upload"], label="Acquire Image")
