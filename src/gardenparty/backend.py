@@ -59,6 +59,8 @@ def describe_image(img:str) -> Dict:
     # Getting the base64 string
     base64_image = encode_image(input_filename)
 
+    print("encoding OK")
+
     if not settings.OPENAI_API_KEY:
         raise RuntimeError("OpenAI API key not set")
 
@@ -229,17 +231,31 @@ def merge_template_prompt(prompt_template:str, description:str):
 async def merged_prompt_to_image(prompt_template_name:str, img:str, strength:float=0.6) -> Dict:
     """Take prompt template name and image name. return merged prompt text."""
 
+    # sanitize img
+    # If the file extension is .JPG
+    # if img.endswith('.JPG'):
+    #     # Create the new filename with .jpg extension
+    #     new_filename = img[:-4] + '.jpg'
+    #     # Construct the full original and new file paths
+    #     original_file = settings.INSTANCE_PATH / 'original'/ img
+    #     new_file = settings.INSTANCE_PATH / 'original'/ new_filename
+    #     # Rename the file
+    #     os.rename(original_file, new_file)
+    #     print(f'Renamed: {original_file} -> {new_file}')
+    #     img = new_filename
+
+
     # get prompt template content
     prompt_template = None
     prompt_template_path = os.path.join('./src/gardenparty/prompt_templates', prompt_template_name)
     with open(prompt_template_path, 'r') as f:
         prompt_template = f.readlines()[0]
 
-    #print("prompt_template OK")
+    print("prompt_template OK")
 
     # get description
     description = describe_image(img)['reply']
-    #print("description OK")
+    print("description OK")
 
     # new merged prompt
     prompt = merge_template_prompt(prompt_template, description)['reply']
