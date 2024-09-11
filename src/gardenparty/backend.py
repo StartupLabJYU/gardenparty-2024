@@ -5,7 +5,10 @@ from openai import OpenAI
 import os
 import requests
 from typing import Union, Dict # use together with FastAPI
+
+
 app = create_app()
+
 
 # Add routes
 @app.get("/all_templates")
@@ -114,8 +117,7 @@ def get_llm_response(prompt:str) -> Dict:
 @app.get("/img_to_image/{img}/{prompt}")
 async def image_to_image(img:str, prompt:str, seed:int=42, strength:float=0.6):
     """Image to image using stable diffusion's service. Please note that the image file name must end with .jpg not .jpeg."""
-    import requests
-    from .app import settings
+    
 
     print('settings.original_images_dir: ', settings.original_images_dir)
 
@@ -144,19 +146,34 @@ async def image_to_image(img:str, prompt:str, seed:int=42, strength:float=0.6):
     )
 
     if response.status_code == 200:
+        print("200")
         output_filename = os.path.join(settings.generated_images_dir, img)
         with open(output_filename, 'wb') as file:
             file.write(response.content)
         
-        return {"result": 200, "prompt":prompt, "strength":strength, "seed":seed}
+        return {"result": 200, "prompt":prompt, "strength":strength, "seed":seed, 'output_filename':os.path.join(settings.generated_images_dir, img)}
 
     else:
         if response.json()['name'] == 'content_moderation':
             return {"result": "Dirty word detected!", "prompt":prompt, "strength":strength, "seed":seed, "response": str(response.json())}
+        else:
+            print("No luck!")
+            return response.json()
         
 
 def merge_template_prompt(prompt_template:str, description:str):
     """Merge selected prompt template with description of the scanned image."""
+
+    # prompt_template = """Make environment as nature scant as possible. Add to the background high rises, forms of transport, and neon signs and neon colors. 
+    #     Depict chaos in the background while promoting unity of IT faculty. Contrast between chaos and unity. 
+    #     DO NOT force the background color."""
+
+    # description = """
+    #     The image features a simple drawing on a blue background. 
+    #     On the left, there is a stick figure holding a spear, pointing it upwards. 
+    #     On the right, there is a sketch of an animal that resembles a pig. 
+    #     The overall scene suggests a possible hunting or spear-throwing scenario involving the animal."""
+
     # set up client credentials
     client = OpenAI(
             api_key=settings.OPENAI_API_KEY,
@@ -169,7 +186,7 @@ def merge_template_prompt(prompt_template:str, description:str):
             {"role": "system", "content": "You are a helpful assistant."},
             {
                 "role": "user",
-                "content": f"Merge these user inputs into a prompt for creating an image. INPUT 1: {prompt_template}, INPUT 2: {description}."
+                "content": f"Merge these user inputs into a prompt for the purpose of creating an image. INPUT 1: {prompt_template}, INPUT 2: {description}."
             }
         ]
     )
@@ -181,3 +198,31 @@ def merge_template_prompt(prompt_template:str, description:str):
         'description':description, 
         'reply':completion.choices[0].message.content
         }
+
+
+@app.get("/merge/{prompt_template_name}/{img}")
+@app.get("/merge/{prompt_template_name}/{img}/{strength}")
+async def merged_prompt_to_image(prompt_template_name:str, img:str, strength:float=0.6) -> Dict:
+    """Take prompt template name and image name. return merged prompt text."""
+
+    # get prompt template content
+    prompt_template = None
+    prompt_template_path = os.path.join('./src/gardenparty/prompt_templates', prompt_template_name)
+    with open(prompt_template_path, 'r') as f:
+        prompt_template = f.readlines()[0]
+
+    #print("prompt_template OK")
+
+    # get description
+    description = describe_image(img)['reply']
+    #print("description OK")
+
+    # new merged prompt
+    prompt = merge_template_prompt(prompt_template, description)['reply']
+    #print("prompt OK")
+    # make the new image
+    response = await image_to_image(img, prompt, seed=42, strength=strength)
+    #print("response OK")
+    print(response)
+    return response
+    

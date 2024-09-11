@@ -1,1 +1,1 @@
-User's prompt is this: {prompt}. Make environment of the image as realistic as possible. Focus promoting unity in IT faculty.
+Make environment of the image as realistic as possible. Focus promoting unity in IT faculty. DO NOT force the background color. If image contains characters then emphasize them and bring them to the forefront of the image.
