@@ -173,7 +173,7 @@ def get_llm_response(prompt:str) -> Dict:
 
 @app.get("/img_to_image/{strength}/{img}/{prompt}")
 @app.get("/img_to_image/{img}/{prompt}")
-def image_to_image(img:str, prompt:str, negative_prompt:str="", seed:int=42, strength:float=0.6):
+def image_to_image(img:str, prompt:str, negative_prompt:str="", seed:int=42, strength:float=0.52):
     """Image to image using stable diffusion's service. Please note that the image file name must end with .jpg not .jpeg."""
     
 
