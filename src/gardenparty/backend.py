@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from pydantic import BaseModel, Field
 from .app import create_app, settings
@@ -249,4 +250,22 @@ async def merged_prompt_to_image(prompt_template_name:str, img:str, strength:flo
     #print("response OK")
     print(response)
     return response
+
+
+def generate_themed_prompt(theme, context):
+    """
+    Combine theme and context to generate an prompt.
+    """
+    theme_files = get_templates()['files']
     
+    # Find matching theme file
+    for f in theme_files:
+        if theme == Path(f).stem:
+            with open(f, 'r') as file:
+                theme_prompt = file.read()
+                break
+    else:
+        raise ValueError(f"Theme {theme!r} not found in the prompt_templates directory.")
+    
+    # Merge theme and context
+    return merge_template_prompt(theme_prompt, context)['reply']
