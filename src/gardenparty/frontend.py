@@ -2,12 +2,14 @@
 Gradio frontend
 """
 import base64
+import csv
 import hashlib
 import logging
 from pathlib import Path
 from pprint import pprint
 import random
 import time
+from uuid import uuid4
 import gradio as gr
 from gradio import ChatMessage, MessageDict
 import os
@@ -35,7 +37,7 @@ DESCRIPTION = r"""
 4. 🖼️ 🗳️ Vote for the best AI-patched image
 """
 
-BTN_STRAIGHTEN = "Straighten"
+BTN_STRAIGHTEN = "Auto straighten"
 
 def ui_chatbot(history=[]):
     chatbot = gr.Chatbot(
@@ -60,23 +62,29 @@ def get_image_themes():
         Path(f).stem for f in get_templates()["files"]
     ]
 
-def process(chat_history, img_input, options, theme):
-
-    yield None, gr.Image(img_input, type="filepath", interactive=False)
-    
-    time.sleep(10)
-    
-    for r in chatbot_acquire(chat_history, img_input, options, theme):
-        # TODO detect last history message and update the toolbar
-        yield r, gr.Image(img_input, type="filepath", interactive=False)
+def save_email(img, email):
+    """
+    Write email to file
+    """
+    with open(settings.INSTANCE_PATH / "emails.csv", "a") as f:
+        w = csv.writer(f)
+        w.writerow([Path(img).stem, email])
 
 
-def chatbot_acquire(chat_history, img_input, options, theme):
+def process(chat_history, img_input, options, theme, email):
+
+
+    if not img_input:
+        gr.Error("No image provided")
+        raise ValueError("No image provided")
+
+    gr.Info("Starting image processing...", duration=5)
 
     # Use sha256 hash of the image as filename
     with open(img_input, "rb") as fd:
-        sha = hashlib.sha256(fd.read()).hexdigest()
-        fname = f"{sha}.webp"
+        #sha = hashlib.sha256(fd.read()).hexdigest()
+        sha = uuid4()
+        fname = f"{sha}.jpg"
 
     target_file = settings.INSTANCE_PATH / "original" / fname
 
@@ -88,7 +96,7 @@ def chatbot_acquire(chat_history, img_input, options, theme):
             )
         ]
 
-        yield ui_chatbot(chat_history)
+        yield ui_chatbot(chat_history), gr.Image(img_input, type="filepath", interactive=False)
 
         if BTN_STRAIGHTEN in options:
             autocrop_and_straighten(img_input, target_file)
@@ -101,6 +109,9 @@ def chatbot_acquire(chat_history, img_input, options, theme):
                 content=f"Image: {target_file!r}",
             )
         ]
+
+        yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
+
         
         # chat_history += [
         #     ChatMessage(
@@ -113,12 +124,25 @@ def chatbot_acquire(chat_history, img_input, options, theme):
             ChatMessage(
                 role="assistant",
                 content="Do you wish to provide an email address to participate in the contest?"
-            ),
-            ChatMessage(
-                role="user",
-                content="No thanks TODO"
             )
         ]
+        if email:
+            chat_history += [
+                ChatMessage(
+                    role="user",
+                    content=f"Sure!"
+                )
+            ]
+            save_email(fname, email)
+        else:
+            chat_history += [
+                ChatMessage(
+                    role="user",
+                    content=f"No thanks"
+                )
+            ]
+
+        yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
 
     except Exception as e:
 
@@ -136,29 +160,23 @@ def chatbot_acquire(chat_history, img_input, options, theme):
         )
     ]
 
-    yield ui_chatbot(chat_history)
+    yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
 
     llm_response = get_sketch_description(fname)
 
     chat_history += [
         ChatMessage(
-            role="assistant",
-            content=f"Ok 👍. {llm_response}"
+            role="user",
+            content=f"{llm_response}"
         ),
         ChatMessage(
-            role="system",
-            content=f"{llm_response}"
+            role="assistant",
+            content="Ok 👍."
         )
     ]
 
-    yield ui_chatbot(chat_history)
-    
-    yield from chatbot_imggen(chat_history, theme="robot", image=fname)
+    yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
 
-    return
-
-
-def chatbot_imggen(chat_history, theme, image):
     # Get last system message, use it as prompt
     for m in reversed(chat_history):
         if m.role == "system":
@@ -174,16 +192,19 @@ def chatbot_imggen(chat_history, theme, image):
             content=f"Generating image with theme {theme!r} and using the following promt:\n\n{positive!r}\n\n{negative!r}"
         )]
 
-    yield ui_chatbot(chat_history)
+    yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
 
-    img2img = image_to_image(image, positive, negative)
+    img2img = image_to_image(fname, positive, negative)
     
     chat_history += [ChatMessage(
         role="user",
         content=img2img['output_filename']
     )]
 
-    yield ui_chatbot(chat_history)
+    yield ui_chatbot(chat_history), gr.Image(img2img['output_filename'], type="filepath", interactive=False)
+
+    gr.Info("ℹ️ Image has been created! Go vote!", duration=10)
+    return 
 
 
 def gra_chatapp():
@@ -212,7 +233,7 @@ def gra_chatapp():
             with gr.Column():
                 options = gr.CheckboxGroup(
                     [BTN_STRAIGHTEN],
-                    value=[BTN_STRAIGHTEN],
+                    value=[],
                     label="Options",
                     show_label=True,
                 )
@@ -225,15 +246,16 @@ def gra_chatapp():
                     label="Theme",
                     show_label=True,
                 )
-                
-                email = gr.Textbox(label="📧 Email", placeholder="jori.ajola@jyu.fi", info="(Optional) Email address is only used to inform winners of the contest")
 
+                email = gr.Textbox(label="📧 Email or username", placeholder="jori.ajola@jyu.fi", info="(Optional) Email address is only used to inform winners of the contest")
+
+        with gr.Row():
+            submit = gr.Button("Submit")
         with gr.Row():
             
             chatbot = ui_chatbot()
 
-        # First stage input
-        img_input.input(process, inputs=[chatbot, img_input, options, theme], outputs=[chatbot, img_input])
+        submit.click(process, inputs=[chatbot, img_input, options, theme, email], outputs=[chatbot, img_input])
     
     return app
 
