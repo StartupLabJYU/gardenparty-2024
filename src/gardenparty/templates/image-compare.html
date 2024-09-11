@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image comparison</title>
+    <link rel="stylesheet" href="static/css/image-compare.css">
+</head>
+<body>
+
+<h1>Compare original image to AI-improved image</h1>
+
+<p>Use the blue slider to compare two images:</p>
+
+<div class="img-comp-container">
+    <div class="img-comp-img">
+        <img src="{{ img1_original }}" width="300" height="300">
+    </div>
+    <div class="img-comp-img img-comp-overlay">
+        <img src="{{ img1_generated }}" width="300" height="300">
+    </div>
+</div>
+
+<script src="static/js/image-compare.js"></script>
+
+</body>
+</html>
