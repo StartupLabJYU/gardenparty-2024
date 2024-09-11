@@ -1,4 +1,7 @@
+import json
 import logging
+from pathlib import Path
+import re
 
 from pydantic import BaseModel, Field
 from .app import create_app, settings
@@ -20,6 +23,37 @@ logger = logging.getLogger(__name__)
 # Prompts. They are in Jinja2 format.
 DESCRIBE_IMAGE_PROMPT = """
 Here is a drawing in a paper. Describe the drawing, and features it has with locations. Avoid Ambiguity. Incorporate Emotions and Atmosphere. Include Context. Use Descriptive Language. No yapping. 
+"""
+
+MERGE_PROMPTS_PROMPT = """
+To write image generation prompt, the following is recommended:
+ - Detailed Prompts: A good prompt needs to be specific and detailed, including keywords for the subject, medium, style, and additional details.
+ - Keyword Categories: Use categories like subject, medium, style, resolution, and additional details to refine your prompt.
+ - Negative Prompts: These specify what you don’t want in the image, helping to steer the output more precisely.
+ - Keyword Weighting: Adjust the importance of keywords using syntax to fine-tune the generated images.
+ - `prompt`: What you wish to see in the output image. A strong, descriptive prompt that clearly defines elements, colors, and subjects will lead to better results. To control the weight of a given word use the format (word:weight), where word is the word you'd like to control the weight of and weight is a value between 0 and 1. For example: The sky was a crisp (blue:0.3) and (green:0.8) would convey a sky that was blue and green, but more green than blue.
+ - `negative_prompt`: A blurb of text describing what you do not wish to see in the output image.
+
+You are given a task to write an image generation prompt from the description. Use the theme for context.
+
+## Theme
+
+    {{prompt_template|indent(4)}}    
+
+## Image description
+
+    {{description|indent(4)}}
+
+## Repsonse
+
+Write response in the following json format:
+
+```json
+{
+    "prompt": "<prompt>",
+    "negative_prompt": "<negative prompt>",
+}
+```
 """
 
 def gen_prompt(template: str, **kwargs):
@@ -141,7 +175,7 @@ def get_llm_response(prompt:str) -> Dict:
 
 @app.get("/img_to_image/{strength}/{img}/{prompt}")
 @app.get("/img_to_image/{img}/{prompt}")
-async def image_to_image(img:str, prompt:str, seed:int=42, strength:float=0.6):
+def image_to_image(img:str, prompt:str, negative_prompt:str="", seed:int=42, strength:float=0.6):
     """Image to image using stable diffusion's service. Please note that the image file name must end with .jpg not .jpeg."""
     
 
@@ -161,23 +195,24 @@ async def image_to_image(img:str, prompt:str, seed:int=42, strength:float=0.6):
         },
         data={
             "prompt": prompt,
+            "negative_prompt": negative_prompt,
             "image": input_filename,
             "output_format": "jpeg",
             "strength":strength,
             "mode":"image-to-image",
             "model":"sd3-medium",
-            "seed":seed,
-            "negative_prompt":"penis"
+            "seed":seed
         },
     )
 
     if response.status_code == 200:
         print("200")
-        output_filename = settings.INSTANCE_PATH / 'generated'/ img
+        output_filename = settings.INSTANCE_PATH / 'generated'/ f"{img}.jpg"
+        output_filename = str(output_filename)
         with open(output_filename, 'wb') as file:
             file.write(response.content)
         
-        return {"result": 200, "prompt":prompt, "strength":strength, "seed":seed, 'output_filename':settings.INSTANCE_PATH / 'generated'/ img }
+        return {"result": 200, "prompt":prompt, "strength":strength, "seed":seed, 'output_filename': output_filename}
 
     else:
         if response.json()['name'] == 'content_moderation':
@@ -205,6 +240,10 @@ def merge_template_prompt(prompt_template:str, description:str):
             api_key=settings.OPENAI_API_KEY,
             )
 
+    prompt = gen_prompt(MERGE_PROMPTS_PROMPT, prompt_template=prompt_template, description=description)
+
+    print(prompt)
+
     # make the call with chosen model
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -212,17 +251,34 @@ def merge_template_prompt(prompt_template:str, description:str):
             {"role": "system", "content": "You are a helpful assistant."},
             {
                 "role": "user",
-                "content": f"Merge these user inputs into a prompt for the purpose of creating an image. INPUT 1: {prompt_template}, INPUT 2: {description}."
-            }
+                "content": prompt
+            }   
         ]
     )
+    
+    response = completion.choices[0].message.content
+    response_prompt = response
+    response_negative_prompt = "penis"
 
+    try:
+        # Try extracting the json block from the response
+        match = re.split(r"```json\n(.*)\n```", response, flags=re.MULTILINE | re.DOTALL)
+        logger.debug("Match: %r", match)
+        text = match[1]
+        data = json.loads(text)
+        response_prompt = data["prompt"]
+        response_negative_prompt = data["negative_prompt"]
+    except Exception as e:
+        logger.error("Error extracting JSON block: %r", e)
+ 
     # return reply in a dict
     #print(completion.choices[0].message)
     return {
         'prompt_template': prompt_template, 
         'description':description, 
-        'reply':completion.choices[0].message.content
+        'reply':completion.choices[0].message.content,
+        'prompt':response_prompt,
+        'negative_prompt':response_negative_prompt
         }
 
 
@@ -265,4 +321,22 @@ async def merged_prompt_to_image(prompt_template_name:str, img:str, strength:flo
     #print("response OK")
     print(response)
     return response
+
+
+def generate_themed_prompt(theme, context):
+    """
+    Combine theme and context to generate an prompt.
+    """
+    theme_files = get_templates()['files']
     
+    # Find matching theme file
+    for f in theme_files:
+        if theme == Path(f).stem:
+            with open(f, 'r') as file:
+                theme_prompt = file.read()
+                break
+    else:
+        raise ValueError(f"Theme {theme!r} not found in the prompt_templates directory.")
+    
+    # Merge theme and context
+    return merge_template_prompt(theme_prompt, context)
