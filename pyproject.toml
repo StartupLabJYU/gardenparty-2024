@@ -17,6 +17,7 @@ opencv-python-headless = "^4.10.0.84"
 numpy = "^2.1.1"
 pydantic-settings = "^2.4.0"
 openai = "^1.44.1"
+cryptography = "^43.0.1"
 
 [tool.poetry.group.dev.dependencies]
 poetry = "^1.8.3"

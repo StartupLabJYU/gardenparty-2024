@@ -3,16 +3,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageContainer = document.querySelector('.image-container');
     const messageDiv = document.getElementById('message');
     const headline = document.getElementById('headline');
-
+    const waitingMessage = document.getElementById('waiting-message');
+    
     const FULL_DASH_ARRAY = 283;
     const TIME_LIMIT = 5;
     let timePassed = 0;
     let timeLeft = TIME_LIMIT;
     let timerInterval = null;
 
-    images.forEach(image => {
-        image.addEventListener('click', () => handleVote(image));
-    });
+    if (waitingMessage) {
+        // If we are in the waiting state
+        startTimer(() => {
+            location.reload();
+        });
+    } else {
+        images.forEach(image => {
+            image.addEventListener('click', () => handleVote(image));
+        });
+    }
 
     function handleVote(clickedImage) {
         // Disable further clicks
@@ -48,7 +56,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 messageDiv.style.display = 'block';
 
                 // Start countdown animation
-                startTimer();
+                startTimer(() => {
+                    location.reload();
+                });
             } else {
                 throw new Error('Failed to submit vote');
             }
@@ -59,14 +69,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function startTimer() {
+    function startTimer(callback) {
         timerInterval = setInterval(() => {
             timePassed += 1;
             timeLeft = TIME_LIMIT - timePassed;
 
             if (timeLeft === 0) {
-                // clearInterval(timerInterval);
-                location.reload();
+                clearInterval(timerInterval);
+                callback();
             } else {
                 setCircleDasharray();
             }
@@ -75,7 +85,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function calculateTimeFraction() {
         const rawTimeFraction = timeLeft / TIME_LIMIT;
-        // return rawTimeFraction - (1 / TIME_LIMIT) * (1 - rawTimeFraction);
         return rawTimeFraction - (1 / TIME_LIMIT);
     }
 

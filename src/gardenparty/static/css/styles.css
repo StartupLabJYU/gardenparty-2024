@@ -40,7 +40,7 @@ h1, h2 {
     opacity: 0.6;
 }
 
-.message {
+.message, .waiting-message {
     margin-top: 30px;
     font-size: 1.2em;
 }
@@ -98,7 +98,7 @@ h1, h2 {
         margin: 0 auto; /* Center images on smaller screens */
     }
 
-    .message {
+    .message, .waiting-message {
         font-size: 1em; /* Slightly smaller text for better mobile readability */
     }
 

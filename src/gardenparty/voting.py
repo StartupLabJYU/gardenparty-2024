@@ -40,14 +40,34 @@ templates = Jinja2Templates(directory="/app/src/gardenparty/templates")
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    images = get_biased_pair()
+    # Attempt to get images for voting, and handle case where no images are available
+    try:
+        images = get_biased_pair()
+    except ValueError as _:
+        return templates.TemplateResponse(
+            "front.html", 
+            context={
+                "skip": True,
+                "img1": "", 
+                "img2": "",
+                "img1_name": "",
+                "img2_name": "",
+                "vote_token": "",
+                "request": request,
+            }
+        )
+
+    # Create vote token and get image names
     vote_token = str(uuid.uuid4())
     img1_name = images[0].split("/")[-1]
     img2_name = images[1].split("/")[-1]
     current_voting_tokens[vote_token] = [img1_name, img2_name]
+
+    # Return the voting template
     return templates.TemplateResponse(
-        name="front.html", 
+        "front.html", 
         context={
+            "skip": False,
             "img1": images[0], 
             "img2": images[1],
             "img1_name": img1_name,
@@ -111,8 +131,6 @@ def winner(request: Request):
                 "request": request
             }
         )
-
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
