@@ -1,3 +1,6 @@
+import logging
+
+from pydantic import BaseModel, Field
 from .app import create_app, settings
 import base64
 from fastapi import FastAPI
@@ -5,7 +8,23 @@ from openai import OpenAI
 import os
 import requests
 from typing import Union, Dict # use together with FastAPI
+
+from jinja2 import Template
+
 app = create_app()
+
+logger = logging.getLogger(__name__)
+
+
+# Prompts. They are in Jinja2 format.
+DESCRIBE_IMAGE_PROMPT = """
+Here is a drawing in a paper. Describe the drawing, and features it has with locations. Avoid Ambiguity. Incorporate Emotions and Atmosphere. Include Context. Use Descriptive Language. No yapping. 
+"""
+
+def gen_prompt(template: str, **kwargs):
+    """Render a prompt template with the given keyword arguments."""
+    return Template(template).render(**kwargs)
+
 
 # Add routes
 @app.get("/all_templates")
@@ -27,7 +46,7 @@ def describe_image(img:str) -> Dict:
     """Using OpenAI describe the content of given image."""
 
     # You can try with: ./original/hunger_in_the_olden_days.jpg
-    input_filename = os.path.join(settings.original_images_dir, img)
+    input_filename = settings.INSTANCE_PATH / "original" / img
     print('input_filename: ', input_filename)
     print('os.getcwd(): ', os.getcwd())
 
@@ -39,40 +58,47 @@ def describe_image(img:str) -> Dict:
     # Getting the base64 string
     base64_image = encode_image(input_filename)
 
+    if not settings.OPENAI_API_KEY:
+        raise RuntimeError("OpenAI API key not set")
+
     # set up client credentials
     headers = {
-    "Content-Type": "application/json",
-    "Authorization": f"Bearer {settings.OPENAI_API_KEY}"
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {settings.OPENAI_API_KEY}"
     }
+
+    prompt = gen_prompt(DESCRIBE_IMAGE_PROMPT)    
 
     # set encoded image to request body
     payload = {
-    "model": "gpt-4o-mini",
-    "messages": [
-        {
-        "role": "user",
-        "content": [
+        "model": "gpt-4o-mini",
+        "messages": [
             {
-            "type": "text",
-            "text": "What’s in this image?"
-            },
-            {
-            "type": "image_url",
-            "image_url": {
-                "url": f"data:image/jpeg;base64,{base64_image}"
+            "role": "user",
+            "content": [
+                {
+                "type": "text",
+                "text": prompt,
+                },
+                {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{base64_image}"
+                }
+                }
+            ]
             }
-            }
-        ]
-        }
-    ],
-    "max_tokens": 300
+        ],
+        "max_tokens": 600
     }
 
     # get description
     response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
 
     #print(response.json()['choices'][0]['message']['content'])
-    
+
+    logger.info(f"Image description: {response.json()}")
+
     # return reply in a dict
     return {'img': input_filename, 'reply':response.json()['choices'][0]['message']['content']}
 
