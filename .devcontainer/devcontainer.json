@@ -8,6 +8,7 @@
 	"dockerComposeFile": [
 		"../docker-compose.yaml"
 	],
+	"overrideCommand": true,
 
 	// The 'service' property is the name of the service for the container that VS Code should
 	// use. Update this value and .devcontainer/docker-compose.yml to the real service name.
@@ -31,6 +32,7 @@
 
 	// Uncomment the next line to run commands after the container is created.
 	// "postCreateCommand": "cat /etc/os-release",
+
 
 	// Configure tool-specific properties.
 	"customizations": {

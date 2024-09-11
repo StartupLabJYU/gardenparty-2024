@@ -14,6 +14,11 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pipx install poetry ruff pre-commit isort && \
     poetry completions bash | sudo tee -a /etc/profile.d/75-poetry.sh
 
+# Setup instance path and make it writable
+ENV INSTANCE_PATH=/app/instance
+RUN mkdir -p $INSTANCE_PATH && \
+    chown vscode:vscode $INSTANCE_PATH
+
 # Set up environment for user
 USER vscode
 

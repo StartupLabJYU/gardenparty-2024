@@ -1,3 +1,5 @@
+from pathlib import Path
+from typing import Counter
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import csv
@@ -5,26 +7,32 @@ import os
 import time
 import random
 import uuid
-from .app import create_app, settings
+from .app import create_app, get_pkg_path, settings
 from .models import Vote
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI, Request
 
-
 app = create_app()
+
 # Path to the CSV file where the votes will be stored
-CSV_FILE_PATH = '/app/instance/vote_results.csv'
+CSV_FILE_PATH = Path(settings.INSTANCE_PATH) / 'vote_results.csv'
+IMAGES_DIR = Path(settings.INSTANCE_PATH) / 'generated'
+STATIC_DIR = get_pkg_path() / 'static'
+TEMPLATES_DIR = get_pkg_path() / 'templates'
 
 # Stores random uuids to prevent repeat voting
 current_voting_tokens = {}
 
-# Ensure CSV file exists and has the header
-if not os.path.exists(CSV_FILE_PATH):
-    with open(CSV_FILE_PATH, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Image 1', 'Image 2', 'Winner', 'Timestamp'])  # Write header if the file is created
+
+@app.on_event("startup")
+def startup_event():
+    # Ensure CSV file exists and has the header
+    if not os.path.exists(CSV_FILE_PATH):
+        with open(CSV_FILE_PATH, mode='w') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Image 1', 'Image 2', 'Winner', 'Timestamp'])  # Write header if the file is created
 
 
 # Pydantic model for vote data validation
@@ -34,20 +42,40 @@ class Vote(BaseModel):
     winner: str
     vote_token: str
 
-app.mount("/static", StaticFiles(directory="/app/src/gardenparty/static"), name="static")
-app.mount("/generated_images", StaticFiles(directory="/app/instance/generated"), name="images")
-templates = Jinja2Templates(directory="/app/src/gardenparty/templates")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/generated_images", StaticFiles(directory=IMAGES_DIR), name="images")
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    images = get_biased_pair()
+    # Attempt to get images for voting, and handle case where no images are available
+    try:
+        images = get_biased_pair()
+    except ValueError as _:
+        return templates.TemplateResponse(
+            "front.html", 
+            context={
+                "skip": True,
+                "img1": "", 
+                "img2": "",
+                "img1_name": "",
+                "img2_name": "",
+                "vote_token": "",
+                "request": request,
+            }
+        )
+
+    # Create vote token and get image names
     vote_token = str(uuid.uuid4())
     img1_name = images[0].split("/")[-1]
     img2_name = images[1].split("/")[-1]
     current_voting_tokens[vote_token] = [img1_name, img2_name]
+
+    # Return the voting template
     return templates.TemplateResponse(
-        name="front.html", 
+        "front.html", 
         context={
+            "skip": False,
             "img1": images[0], 
             "img2": images[1],
             "img1_name": img1_name,
@@ -90,17 +118,8 @@ def winner(request: Request):
             for row in reader:
                 rows.append(row)
         # Count the number of wins for each image
-        votes = {}
-        for row in rows:
-            if row['Winner'] in votes:
-                votes[row['Winner']] += 1
-            else:
-                votes[row['Winner']] = 1
-        # Order the votes by the number of wins
-        votes = dict(sorted(votes.items(), key=lambda item: item[1], reverse=True))
-
-        # Get the winner image and id
-        winner_id = list(votes.keys())[0]
+        votes = Counter(row['Winner'] for row in rows)
+        winner_id, _votes = votes.most_common(1)[0]
 
         # Return the winner image and id
         return templates.TemplateResponse(
@@ -111,8 +130,6 @@ def winner(request: Request):
                 "request": request
             }
         )
-
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -121,8 +138,7 @@ def get_biased_pair():
     """
     TODO: Read the vote, and use biased sampling to return a pair of images.
     """
-    # For now select two random images from settings.generated_images_dir
-    images = list(settings.generated_images_dir.glob('*'))
+    images = list(Path(IMAGES_DIR).glob('*'))
     image_paths = [f"/generated_images/{img.name}" for img in images]
     return random.sample(image_paths, k=2)
 
@@ -133,12 +149,16 @@ def gallery(request: Request):
     Returns a list of all images in the generated_images.
     Include all image type files
     """
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         name="gallery.html", 
         context={
             "request": request
         }
     )
+    # Cache the response for 1 minute
+    response.headers["Cache-Control"] = "max-age=60"
+
+    return response
 
 @app.get('/get_all_images')
 def get_all_images():
@@ -146,6 +166,6 @@ def get_all_images():
     Returns a list of all images in the generated_images.
     Include all image type files
     """
-    images = list(settings.generated_images_dir.glob('*'))
+    images = list(Path(IMAGES_DIR).glob('*'))
     image_paths = [f"/generated_images/{img.name}" for img in images]
     return image_paths
