@@ -103,13 +103,6 @@ def process(chat_history, img_input, options, theme, email):
             autocrop_and_straighten(img_input, target_file)
         else:
             autocrop(img_input, target_file)
-        
-        chat_history += [
-            ChatMessage(
-                role="system",
-                content=f"Image: {target_file!r}",
-            )
-        ]
 
         yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
 
@@ -181,12 +174,7 @@ def process(chat_history, img_input, options, theme, email):
 
     yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
 
-    # Get last system message, use it as prompt
-    for m in reversed(chat_history):
-        if m.role == "system":
-            prompt = m.content
-            break
-    generative_prompt = generate_themed_prompt(theme, prompt)
+    generative_prompt = generate_themed_prompt(theme, llm_response)
     
     positive = generative_prompt["prompt"]
     negative = generative_prompt["negative_prompt"]
