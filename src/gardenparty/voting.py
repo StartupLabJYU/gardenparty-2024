@@ -174,10 +174,10 @@ def vote(vote: Vote):
    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get('/winner')
-def winner(request: Request):
+@app.get('/test_page')
+def test_page(request: Request):
     """"
-    Returns the current winner image and id
+    Returns the winner
     """
     try:
         rows = []
