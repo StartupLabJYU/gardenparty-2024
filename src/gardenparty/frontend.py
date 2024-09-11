@@ -6,6 +6,7 @@ import hashlib
 import logging
 from pathlib import Path
 from pprint import pprint
+import random
 import time
 import gradio as gr
 from gradio import ChatMessage, MessageDict
@@ -34,6 +35,8 @@ DESCRIPTION = r"""
 4. 🖼️ 🗳️ Vote for the best AI-patched image
 """
 
+BTN_STRAIGHTEN = "Straighten"
+
 def ui_chatbot(history=[]):
     chatbot = gr.Chatbot(
         history,
@@ -52,20 +55,23 @@ def get_sketch_description(image) -> str:
     return r["reply"]
 
 def get_image_themes():
-    print(get_templates()["files"])
 
     return [
         Path(f).stem for f in get_templates()["files"]
     ]
 
-def acquire(chat_history, img_input, auto_adjust=False):
+def process(chat_history, img_input, options, theme):
 
-    for r in chatbot_acquire(chat_history, img_input, auto_adjust):
+    yield None, gr.Image(img_input, type="filepath", interactive=False)
+    
+    time.sleep(10)
+    
+    for r in chatbot_acquire(chat_history, img_input, options, theme):
         # TODO detect last history message and update the toolbar
         yield r, gr.Image(img_input, type="filepath", interactive=False)
 
 
-def chatbot_acquire(chat_history, img_input, auto_adjust=False):
+def chatbot_acquire(chat_history, img_input, options, theme):
 
     # Use sha256 hash of the image as filename
     with open(img_input, "rb") as fd:
@@ -84,11 +90,10 @@ def chatbot_acquire(chat_history, img_input, auto_adjust=False):
 
         yield ui_chatbot(chat_history)
 
-        if auto_adjust:
+        if BTN_STRAIGHTEN in options:
             autocrop_and_straighten(img_input, target_file)
         else:
             autocrop(img_input, target_file)
-            save_image_as(img_input, target_file)
         
         chat_history += [
             ChatMessage(
@@ -172,7 +177,6 @@ def chatbot_imggen(chat_history, theme, image):
     yield ui_chatbot(chat_history)
 
     img2img = image_to_image(image, positive, negative)
-    pprint(img2img)
     
     chat_history += [ChatMessage(
         role="user",
@@ -186,42 +190,50 @@ def gra_chatapp():
     """
     Chat interface for the app.
     """
-    with gr.Blocks(fill_height=True, title="Garden party AI patcher", fill_width=True) as app:
+    with gr.Blocks(fill_height=True, title="Garden party AI patcher") as app:
 
-            chatbot = ui_chatbot()
             # with gr.Row(variant="panel"):
             #     reset_btn = gr.Button("Reset")
             #     undo_btn = gr.Button("Undo")
             #     clear_btn = gr.Button("Clear")
 
-            with gr.Tab(label="Acquisition") as stage_acquisition:
-                with gr.Row():
-                    img_input = gr.Image(
-                        height=200,
-                        width=200,
-                        type="filepath",
-                        sources=["webcam", "upload"],
-                        label="Upload image",
-                        mirror_webcam=False,
-                        show_label=False)
+        with gr.Row():
+            
+            with gr.Column():
+                img_input = gr.Image(
+                    #height=200,
+                    #width=200,
+                    type="filepath",
+                    sources=["webcam", "upload"],
+                    label="Upload image",
+                    mirror_webcam=False,
+                    show_label=False)
 
-                    options = gr.CheckboxGroup(
-                        ["Staighten"],
-                        label="Options",
-                        show_label=True,
-                    )
+            with gr.Column():
+                options = gr.CheckboxGroup(
+                    [BTN_STRAIGHTEN],
+                    value=[BTN_STRAIGHTEN],
+                    label="Options",
+                    show_label=True,
+                )
+                
+                themes = get_image_themes()
+                choices = random.sample(themes, 5)
+                theme = gr.Dropdown(
+                    choices=choices,
+                    value=choices[0],
+                    label="Theme",
+                    show_label=True,
+                )
+                
+                email = gr.Textbox(label="📧 Email", placeholder="jori.ajola@jyu.fi", info="(Optional) Email address is only used to inform winners of the contest")
 
-            with gr.Tab(label="Theme") as stage_imggen:
-                theme_buttons = []
-                with gr.Row():
-                    email = gr.Textbox(label="📧 Email", placeholder="jori.ajola@jyu.fi", info="(Optional) Email address is only used to inform winners of the contest")
+        with gr.Row():
+            
+            chatbot = ui_chatbot()
 
-                with gr.Row():
-                    gr.Markdown("**Choose a theme for the image:**")
-                    for theme in get_image_themes():
-                        gr.Button(theme)
-
-            img_input.input(acquire, inputs=[chatbot, img_input], outputs=[chatbot, img_input])
+        # First stage input
+        img_input.input(process, inputs=[chatbot, img_input, options, theme], outputs=[chatbot, img_input])
     
     return app
 
