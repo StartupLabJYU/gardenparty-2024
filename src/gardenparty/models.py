@@ -16,11 +16,10 @@ class Vote(BaseModel):
 
 
 class Settings(BaseSettings):
-    original_images_dir: Path = Field(Path("./instance/original"), help="Directory to store original images")
-    generated_images_dir: Path = Field(Path("./instance/generated"), help="Directory to store generated images")
-    
+    INSTANCE_PATH: Path = Field(Path("./instance"), help="Directory to store instance data")
 
     # to read API keys etc. from environment variables model_config should be defined in here
     OPENAI_API_KEY:str = ""
     STABILITYAI_API_KEY:str = ""
+
     model_config = SettingsConfigDict(env_file=".env")
