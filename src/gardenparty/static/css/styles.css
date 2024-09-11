@@ -21,15 +21,13 @@ h1, h2 {
 }
 
 .voting-image {
-    width: 100%;
-    max-width: 300px; /* Maintain the original size limit */
+    max-width: 45vw;
     height: auto;
-    max-height: 40vh; /* Limit the height relative to viewport height */
-    object-fit: cover; /* Maintain aspect ratio and cover the container */
+    max-height: 40vh;
     cursor: pointer;
     transition: transform 0.2s, border-radius 0.2s;
-    border-radius: 10px; /* Rounded edges for images */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Shadow for a modern look */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .voting-image:hover {
