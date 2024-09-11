@@ -205,6 +205,11 @@ def process(chat_history, img_input, options, theme, email):
         content=img2img['output_filename']
     )]
 
+    chat_history += [ChatMessage(
+        role="user",
+        content="**Voting**: You can [now go and vote for your favorite – or own – AI-patched image!](https://itk-pj-voting.byteboat.fi/)\n![](https://itk-pj-voting.byteboat.fi/static/voting_qr.png)"
+    )]
+
     yield ui_chatbot(chat_history), gr.Image(img2img['output_filename'], type="filepath", interactive=False)
 
     gr.Info("ℹ️ Image has been created! Go vote!", duration=10)
