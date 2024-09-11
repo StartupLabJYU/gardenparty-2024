@@ -1,17 +1,15 @@
 """
 Gradio frontend
 """
-import base64
 import csv
 import hashlib
 import logging
 from pathlib import Path
-from pprint import pprint
 import random
 import time
 from uuid import uuid4
 import gradio as gr
-from gradio import ChatMessage, MessageDict
+from gradio import ChatMessage
 import os
 
 import requests
@@ -31,10 +29,13 @@ os.environ.setdefault("GRADIO_SERVER_NAME", "0.0.0.0")
 DESCRIPTION = r"""
 ## IT-Faculty Garden Party 2024: The AI patcher
 
-1. 📷 📂 Acquire an image using the camer or upload an image 
-2. 📧 🏅 (Optional) Fill in your email address to participate in the contest
-3. 🤖 ⚙️ Let the AI patcher do its magic 
-4. 🖼️ 🗳️ Vote for the best AI-patched image
+0. 🔄 (Refresh the page if previous messages are still visible)
+1. 🎨 🫶 Draw an patch design for IT Faculty with the theme of _Unity_
+2. 📷 📂 Acquire the design using the camera or upload an image 
+3. 📧 🏅 (_Optional_) Fill in your email address to participate in the contest
+4. 🤖 ⚙️ Let the AI patcher do its magic 
+5. 🖼️ 🗳️ Vote for the best AI-patched image
+6. 🎉 🏆 (_Optional_) Win prizes! 
 """
 
 BTN_STRAIGHTEN = "Auto straighten"
@@ -130,7 +131,7 @@ def process(chat_history, img_input, options, theme, email):
             chat_history += [
                 ChatMessage(
                     role="user",
-                    content=f"Sure!"
+                    content="✅ Sure!"
                 )
             ]
             save_email(fname, email)
@@ -138,7 +139,7 @@ def process(chat_history, img_input, options, theme, email):
             chat_history += [
                 ChatMessage(
                     role="user",
-                    content=f"No thanks"
+                    content="⛔ No thanks."
                 )
             ]
 
@@ -152,6 +153,9 @@ def process(chat_history, img_input, options, theme, email):
                 content=f"An error occurred while processing the image: {e}",
             )
         ]
+        gr.Error("An error occurred while processing the image.")
+        yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
+        return 
 
     chat_history += [
         ChatMessage(
@@ -231,12 +235,6 @@ def gra_chatapp():
                     show_label=False)
 
             with gr.Column():
-                options = gr.CheckboxGroup(
-                    [BTN_STRAIGHTEN],
-                    value=[],
-                    label="Options",
-                    show_label=True,
-                )
                 
                 themes = get_image_themes()
                 choices = random.sample(themes, 5)
@@ -247,7 +245,14 @@ def gra_chatapp():
                     show_label=True,
                 )
 
-                email = gr.Textbox(label="📧 Email or username", placeholder="jori.ajola@jyu.fi", info="(Optional) Email address is only used to inform winners of the contest")
+                email = gr.Textbox(label="📧 (Optional) Email or username", placeholder="jori.ajola@jyu.fi", info="Email address is only used to inform winners of the contest")
+
+                options = gr.CheckboxGroup(
+                    [BTN_STRAIGHTEN],
+                    value=[],
+                    label="Options",
+                    show_label=True,
+                )
 
         with gr.Row():
             submit = gr.Button("Submit")
@@ -260,7 +265,7 @@ def gra_chatapp():
     return app
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     app = gra_chatapp()
     app.launch(show_api=False, share=False)
