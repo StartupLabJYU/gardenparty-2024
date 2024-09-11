@@ -11,6 +11,7 @@ import os
 
 import requests
 
+from gardenparty.backend import describe_image
 from gardenparty.preprocess import autocrop, autocrop_and_straighten, save_image_as
 
 from uuid import uuid4
@@ -44,75 +45,20 @@ def ui_chatbot(history=[]):
     )
     return chatbot
 
-def describe_image(img:str):
-    """Using OpenAI describe the content of given image."""
-
-    # You can try with: ./original/hunger_in_the_olden_days.jpg
-    input_filename = settings.INSTANCE_PATH / "original" / img
-    print('input_filename: ', input_filename)
-    print('os.getcwd(): ', os.getcwd())
-
-    # Function to encode the image
-    def encode_image(image_path):
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
-
-    # Getting the base64 string
-    base64_image = encode_image(input_filename)
-
-    if not settings.OPENAI_API_KEY:
-        raise RuntimeError("OpenAI API key not set")
-
-    # set up client credentials
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {settings.OPENAI_API_KEY}"
-    }
-
-    prompt = """Here is a drawing in a paper. Describe the drawing, and features it has with locations. Avoid Ambiguity. Incorporate Emotions and Atmosphere. Include Context. Use Descriptive Language. No yapping."""
-
-    # set encoded image to request body
-    payload = {
-        "model": "gpt-4o-mini",
-        "messages": [
-            {
-            "role": "user",
-            "content": [
-                {
-                "type": "text",
-                "text": prompt,
-                },
-                {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:image/jpeg;base64,{base64_image}"
-                }
-                }
-            ]
-            }
-        ],
-        "max_tokens": 600
-    }
-
-    # get description
-    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-
-    #print(response.json()['choices'][0]['message']['content'])
-
-    logger.info(f"Image description: {response.json()}")
-
-    # return reply in a dict
-    return {'img': input_filename, 'reply':response.json()['choices'][0]['message']['content']}
-
-
 
 def get_sketch_description(image) -> str:
+    # TODO  HTTP call
     r = describe_image(image)
-
-    logger.info("Image description: %s", r)
     return r["reply"]
 
+
 def acquire(chat_history, img_input, auto_adjust=False):
+
+    for r in chatbot_acquire(chat_history, img_input, auto_adjust):
+        # TODO detect last history message and update the toolbar
+        yield r, gr.Image(img_input, type="filepath", interactive=False)
+
+def chatbot_acquire(chat_history, img_input, auto_adjust=False):
 
     # Use sha256 hash of the image as filename
     with open(img_input, "rb") as fd:
@@ -129,7 +75,7 @@ def acquire(chat_history, img_input, auto_adjust=False):
             )
         ]
 
-        yield ui_chatbot(chat_history), None
+        yield ui_chatbot(chat_history)
 
         if auto_adjust:
             autocrop_and_straighten(img_input, target_file)
@@ -137,12 +83,12 @@ def acquire(chat_history, img_input, auto_adjust=False):
             autocrop(img_input, target_file)
             save_image_as(img_input, target_file)
         
-        chat_history += [
-            ChatMessage(
-                role="assistant",
-                content=gr.Image(target_file, type="filepath", interactive=False)
-            )
-        ]
+        # chat_history += [
+        #     ChatMessage(
+        #         role="assistant",
+        #         content=gr.Image(target_file, type="filepath", interactive=False)
+        #     )
+        # ]
 
         chat_history += [
             ChatMessage(
@@ -151,29 +97,40 @@ def acquire(chat_history, img_input, auto_adjust=False):
             ),
             ChatMessage(
                 role="user",
-                content="No thanks 🙅‍♂️ TODO"
-            ),
+                content="No thanks TODO"
+            )
         ]
 
     except Exception as e:
 
-        chat_history.append(
+        chat_history += [
             ChatMessage(
                 role="assistant",
                 content=f"An error occurred while processing the image: {e}",
             )
-        )
+        ]
 
-    chat_history.append(
+    chat_history += [
         ChatMessage(
             role="assistant",
             content="Looking at the picture... 🧐",
-        ),
-    )
+        )
+    ]
 
-    yield ui_chatbot(chat_history), None
+    yield ui_chatbot(chat_history)
+
+    llm_response = get_sketch_description(fname)
+
+    chat_history += [
+        ChatMessage(
+            role="assistant",
+            content=f"Ok 👍. {llm_response}"
+        )
+    ]
+
+    yield ui_chatbot(chat_history)
+
     return
-
 
 def gr_app():
     with gr.Blocks(theme=gr.themes.Soft()) as app:
@@ -236,4 +193,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     app = gra_chatapp()
-    app.queue().launch(show_api=False, share=False)
+    app.launch(show_api=False, share=False)
