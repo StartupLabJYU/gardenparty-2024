@@ -174,13 +174,14 @@ def scale_and_crop(image, max_size=1024, aspect_ratio_max=2.5):
 def autocrop(image_path, output_path) -> None:
     image, blurred = preprocess_image(image_path)
 
-    cropped = trim_whitespace(image)
-    contrasted = enhance_contrast(cropped)
+
+    image = trim_whitespace(image)
+    # contrasted = enhance_contrast(cropped)
 
     # Crop to ensure aspect ratio
-    cropped_image = scale_and_crop(contrasted)
+    image = scale_and_crop(image)
 
-    if not cv2.imwrite(output_path, cropped_image):
+    if not cv2.imwrite(output_path, image):
         raise ValueError(f"Failed to save image to {output_path}")
 
     logger.info(f"Processed image saved as {output_path}")
@@ -191,16 +192,16 @@ def autocrop_and_straighten(image_path, output_path) -> None:
     image, blurred = preprocess_image(image_path)
     #edged = detect_edges(blurred)
     contour = find_document_contours(blurred)
-    warped_image = get_document_perspective(image, contour)
+    image = get_document_perspective(image, contour)
     
-    cropped = trim_whitespace(warped_image)
-    contrasted = enhance_contrast(cropped)
+    image = trim_whitespace(image)
+    # contrasted = enhance_contrast(cropped)
 
     # Crop to ensure aspect ratio
-    cropped_image = scale_and_crop(contrasted)
+    image = scale_and_crop(image)
 
     # Save the result
-    if not cv2.imwrite(output_path, cropped_image):
+    if not cv2.imwrite(output_path, image):
         raise ValueError(f"Failed to save image to {output_path}")
 
     logger.info(f"Processed image saved as {output_path}")
