@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const waitingMessage = document.getElementById('waiting-message');
     
     const FULL_DASH_ARRAY = 283;
-    const TIME_LIMIT = 5;
+    const TIME_LIMIT = 2;
     let timePassed = 0;
     let timeLeft = TIME_LIMIT;
     let timerInterval = null;
