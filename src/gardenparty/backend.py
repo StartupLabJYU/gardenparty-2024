@@ -205,11 +205,11 @@ def image_to_image(img:str, prompt:str, negative_prompt:str="", seed:int=42, str
 
     if response.status_code == 200:
         print("200")
-        output_filename = settings.INSTANCE_PATH / 'generated'/ f"{img}.jpg"
+        output_filename = settings.INSTANCE_PATH / 'generated'/ f"{img}"
         output_filename = str(output_filename)
         with open(output_filename, 'wb') as file:
             file.write(response.content)
-        
+
         return {"result": 200, "prompt":prompt, "strength":strength, "seed":seed, 'output_filename': output_filename}
 
     else:
