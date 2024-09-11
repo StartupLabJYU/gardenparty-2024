@@ -182,11 +182,11 @@ def white_balance(img):
 
 
 def autocrop(image_path, output_path) -> None:
-    image, blurred = preprocess_image(image_path)
+    image, _ = preprocess_image(image_path)
+    #image = trim_whitespace(image)
 
     image = white_balance(image)
 
-    image = trim_whitespace(image)
     # contrasted = enhance_contrast(cropped)
 
     # Crop to ensure aspect ratio
@@ -202,13 +202,13 @@ def autocrop(image_path, output_path) -> None:
 def autocrop_and_straighten(image_path, output_path) -> None:
     image, blurred = preprocess_image(image_path)
     #edged = detect_edges(blurred)
+    #image = trim_whitespace(image)
     
     image = white_balance(image)
 
     contour = find_document_contours(blurred)
     image = get_document_perspective(image, contour)
     
-    image = trim_whitespace(image)
     # contrasted = enhance_contrast(cropped)
 
     # Crop to ensure aspect ratio
@@ -230,4 +230,4 @@ def save_image_as(source: str, target: str) -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    autocrop_and_straighten('instance/img_2106.jpg', 'instance/preprocessed_img_2106.jpg')
+    autocrop_and_straighten('5044ddb4-edb0-4ab9-95fb-be0f56ff8fe0.jpg', 'processed.jpg')
