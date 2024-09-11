@@ -4,6 +4,7 @@ Gradio frontend
 import base64
 import hashlib
 import logging
+from pathlib import Path
 import time
 import gradio as gr
 from gradio import ChatMessage, MessageDict
@@ -11,7 +12,7 @@ import os
 
 import requests
 
-from gardenparty.backend import describe_image
+from gardenparty.backend import describe_image, generate_themed_prompt, get_templates
 from gardenparty.preprocess import autocrop, autocrop_and_straighten, save_image_as
 
 from uuid import uuid4
@@ -51,6 +52,12 @@ def get_sketch_description(image) -> str:
     r = describe_image(image)
     return r["reply"]
 
+def get_image_themes():
+    print(get_templates()["files"])
+
+    return [
+        Path(f).stem for f in get_templates()["files"]
+    ]
 
 def acquire(chat_history, img_input, auto_adjust=False):
 
@@ -125,30 +132,34 @@ def chatbot_acquire(chat_history, img_input, auto_adjust=False):
         ChatMessage(
             role="assistant",
             content=f"Ok 👍. {llm_response}"
+        ),
+        ChatMessage(
+            role="system",
+            content=f"{llm_response}"
         )
     ]
 
     yield ui_chatbot(chat_history)
+    
+    yield from chatbot_imggen(chat_history, theme="steam_punk")
 
     return
 
-def gr_app():
-    with gr.Blocks(theme=gr.themes.Soft()) as app:
-        log_messages = gr.State([])
-        with gr.Row():
-            gr.Markdown(DESCRIPTION)
-            email = gr.Textbox(label="Email", placeholder="Email", info="Email address is only used to inform winners of the contest")
-        with gr.Row():
-            with gr.Column():
-                img_input = gr.Image(type="filepath", sources=["webcam", "upload"], label="Acquire Image")
-            with gr.Column():
-                img_output = gr.Image(type="filepath", label="Generated Image", sources=[], interactive=False)
-        with gr.Row() as toolbar:
-            with gr.Column():
-                auto_adjust = gr.Checkbox(True, label="Auto adjust", info="Auto adjust the image")
 
-        img_input.input(acquire, inputs=[img_input, auto_adjust], outputs=[img_output])
-    return app
+def chatbot_imggen(chat_history, theme):
+    # Get last system message, use it as prompt
+    for m in reversed(chat_history):
+        if m.role == "system":
+            prompt = m.content
+            break
+    generative_prompt = generate_themed_prompt(theme, prompt)
+    
+    chat_history += [ChatMessage(
+            role="assistant",
+            content=f"Generating image with theme {theme} and prompt {generative_prompt}"
+        )]
+        
+    yield ui_chatbot(chat_history)
 
 
 def gra_chatapp():
@@ -158,32 +169,37 @@ def gra_chatapp():
     with gr.Blocks(fill_height=True, title="Garden party AI patcher", fill_width=True) as app:
 
             chatbot = ui_chatbot()
-            with gr.Row(variant="panel"):
-                reset_btn = gr.Button("Reset")
-                undo_btn = gr.Button("Undo")
-                clear_btn = gr.Button("Clear")
+            # with gr.Row(variant="panel"):
+            #     reset_btn = gr.Button("Reset")
+            #     undo_btn = gr.Button("Undo")
+            #     clear_btn = gr.Button("Clear")
 
-            with gr.Row() as actionbar:
-                img_input = gr.Image(
-                    height=200,
-                    width=200,
-                    type="filepath",
-                    sources=["webcam", "upload"],
-                    label="Upload image",
-                    mirror_webcam=False,
-                    show_label=False)
+            with gr.Tab(label="Acquisition") as stage_acquisition:
+                with gr.Row():
+                    img_input = gr.Image(
+                        height=200,
+                        width=200,
+                        type="filepath",
+                        sources=["webcam", "upload"],
+                        label="Upload image",
+                        mirror_webcam=False,
+                        show_label=False)
 
-                options = gr.CheckboxGroup(
-                    ["Staighten"],
-                    label="Options",
-                    show_label=True,
-                )
-                # img_input = gr.ImageEditor(
-                #     type="filepath",
-                #     sources=["webcam"],
-                #     label="Provide a sketch",
-                #     elem_id="img_input")
-                # img_output = gr.Image(type="filepath", label="Generated Image", sources=[], interactive=False)
+                    options = gr.CheckboxGroup(
+                        ["Staighten"],
+                        label="Options",
+                        show_label=True,
+                    )
+
+            with gr.Tab(label="Theme") as stage_imggen:
+                theme_buttons = []
+                with gr.Row():
+                    email = gr.Textbox(label="📧 Email", placeholder="jori.ajola@jyu.fi", info="(Optional) Email address is only used to inform winners of the contest")
+
+                with gr.Row():
+                    gr.Markdown("**Choose a theme for the image:**")
+                    for theme in get_image_themes():
+                        gr.Button(theme)
 
             img_input.input(acquire, inputs=[chatbot, img_input], outputs=[chatbot, img_input])
     
