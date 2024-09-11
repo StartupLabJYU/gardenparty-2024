@@ -15,7 +15,7 @@ import os
 import requests
 
 from gardenparty.backend import describe_image, generate_themed_prompt, get_templates, image_to_image
-from gardenparty.preprocess import autocrop, autocrop_and_straighten, save_image_as
+from gardenparty.preprocess import autocrop, autocrop_and_straighten
 
 from gardenparty.app import settings
 
@@ -38,6 +38,7 @@ DESCRIPTION = r"""
 6. 🎉 🏆 (_Optional_) Win prizes! 
 """
 
+BTN_ON_PREMISES = "Agora event crop"
 BTN_STRAIGHTEN = "Auto straighten"
 
 def ui_chatbot(history=[]):
@@ -58,7 +59,6 @@ def get_sketch_description(image) -> str:
     return r["reply"]
 
 def get_image_themes():
-
     return [
         Path(f).stem for f in get_templates()["files"]
     ]
@@ -76,8 +76,8 @@ def process(chat_history, img_input, options, theme, email):
 
 
     if not img_input:
-        gr.Error("No image provided")
-        raise ValueError("No image provided")
+        gr.Error("No image provided. If you attempted camera, please tap the camera button in the preview window.")
+        return
 
     gr.Info("Starting image processing...", duration=5)
 
@@ -242,7 +242,13 @@ def gra_chatapp():
             with gr.Column():
                 
                 themes = get_image_themes()
+                    # Always include the "drawing" as the first option
                 choices = random.sample(themes, 5)
+                
+                if "drawing" in choices:
+                    themes.remove("drawing")
+                choices.insert(0, "drawing")
+
                 theme = gr.Dropdown(
                     choices=choices,
                     value=choices[0],
