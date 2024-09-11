@@ -31,13 +31,13 @@
         </div>
     {% else %}
         <input type="hidden" id="vote_token" value="{{vote_token}}">
-        <h1 id="headline">Select the image that tickles your fancy:</h1>
+        <h1 id="headline">{{ headline }}</h1>
         <div class="image-container">
             <img src="{{img1}}" alt="Image 1" id="image1" data-name="{{img1_name}}" class="voting-image">
             <img src="{{img2}}" alt="Image 2" id="image2" data-name="{{img2_name}}" class="voting-image">
         </div>
         <div id="message" class="message" style="display: none;">
-            <h2>Thank you for voting</h2>
+            <h2>{{ vote_response }}</h2>
             <div class="base-timer">
                 <svg class="base-timer__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                     <g class="base-timer__circle">
