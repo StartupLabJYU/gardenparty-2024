@@ -148,7 +148,7 @@ def chatbot_acquire(chat_history, img_input, auto_adjust=False):
 
     yield ui_chatbot(chat_history)
     
-    yield from chatbot_imggen(chat_history, theme="steam_punk", image=fname)
+    yield from chatbot_imggen(chat_history, theme="robot", image=fname)
 
     return
 
@@ -171,7 +171,7 @@ def chatbot_imggen(chat_history, theme, image):
 
     yield ui_chatbot(chat_history)
 
-    img2img = image_to_image(image, positive, negative, strength=0.66)
+    img2img = image_to_image(image, positive, negative)
     pprint(img2img)
     
     chat_history += [ChatMessage(
