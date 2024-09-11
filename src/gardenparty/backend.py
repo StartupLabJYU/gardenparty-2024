@@ -34,9 +34,9 @@ To write image generation prompt, the following is recommended:
  - `prompt`: What you wish to see in the output image. A strong, descriptive prompt that clearly defines elements, colors, and subjects will lead to better results. To control the weight of a given word use the format (word:weight), where word is the word you'd like to control the weight of and weight is a value between 0 and 1. For example: The sky was a crisp (blue:0.3) and (green:0.8) would convey a sky that was blue and green, but more green than blue.
  - `negative_prompt`: A blurb of text describing what you do not wish to see in the output image.
 
-You are given a task to write an image generation prompt from the description. Use the theme for context.
+You are given a task to write an image generation prompt from the description. Focus on the description, supplement with provided theme.
 
-## Theme
+## Theme for context
 
     {{prompt_template|indent(4)}}    
 
@@ -46,7 +46,7 @@ You are given a task to write an image generation prompt from the description. U
 
 ## Repsonse
 
-Write response in the following json format:
+You MUST Write response in the following json format:
 
 ```json
 {
