@@ -118,16 +118,28 @@ def get_document_perspective(image, contour) -> np.ndarray:
 def trim_whitespace(image) -> np.ndarray:
     # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # Apply thresholding
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)
-    # Find contours
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # Get the bounding box of the largest contour
-    x, y, w, h = cv2.boundingRect(contours[0])
-    # Crop the image
-    cropped_image = image[y:y+h, x:x+w]
-    return cropped_image
-
+    
+    # Blur the image slightly to reduce noise
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    
+    # Threshold the image to separate white areas
+    _, thresh = cv2.threshold(blurred, 240, 255, cv2.THRESH_BINARY)
+    
+    # Invert the binary image (white -> 0, non-white -> 255)
+    thresh_inv = cv2.bitwise_not(thresh)
+    
+    # Find contours to locate the bounding box of the non-white areas
+    contours, _ = cv2.findContours(thresh_inv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Find the bounding rectangle for the largest contour
+    if contours:
+        x, y, w, h = cv2.boundingRect(contours[0])
+        
+        # Crop the image using the bounding box
+        cropped_img = image[y:y+h, x:x+w]
+        
+        return cropped_img
+    return image
 
 def enhance_contrast(image) -> np.ndarray:
     # Improve contrast using CLAHE (adaptive histogram equalization)
@@ -183,7 +195,7 @@ def white_balance(img):
 
 def autocrop(image_path, output_path) -> None:
     image, _ = preprocess_image(image_path)
-    #image = trim_whitespace(image)
+    image = trim_whitespace(image)
 
     image = white_balance(image)
 
@@ -230,4 +242,4 @@ def save_image_as(source: str, target: str) -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    autocrop_and_straighten('5044ddb4-edb0-4ab9-95fb-be0f56ff8fe0.jpg', 'processed.jpg')
+    autocrop('5044ddb4-edb0-4ab9-95fb-be0f56ff8fe0.jpg', 'processed.jpg')
