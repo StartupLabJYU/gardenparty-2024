@@ -21,10 +21,11 @@ h1, h2 {
 }
 
 .voting-image {
-    width: 100%; /* Make images responsive */
+    width: 100%;
     max-width: 300px; /* Maintain the original size limit */
     height: auto;
     max-height: 40vh; /* Limit the height relative to viewport height */
+    object-fit: cover; /* Maintain aspect ratio and cover the container */
     cursor: pointer;
     transition: transform 0.2s, border-radius 0.2s;
     border-radius: 10px; /* Rounded edges for images */
