@@ -34,7 +34,7 @@ To write image generation prompt, the following is recommended:
  - `prompt`: What you wish to see in the output image. A strong, descriptive prompt that clearly defines elements, colors, and subjects will lead to better results. To control the weight of a given word use the format (word:weight), where word is the word you'd like to control the weight of and weight is a value between 0 and 1. For example: The sky was a crisp (blue:0.3) and (green:0.8) would convey a sky that was blue and green, but more green than blue.
  - `negative_prompt`: A blurb of text describing what you do not wish to see in the output image.
 
-You are given a task to write an image generation prompt from the description. Focus on the description, supplement with provided theme.
+You are given a task to write an image generation prompt from the description. Focus on the description, but enhance it with provided theme.
 
 ## Theme for context
 
@@ -173,15 +173,14 @@ def get_llm_response(prompt:str) -> Dict:
 
 @app.get("/img_to_image/{strength}/{img}/{prompt}")
 @app.get("/img_to_image/{img}/{prompt}")
-def image_to_image(img:str, prompt:str, negative_prompt:str="", seed:int=42, strength:float=0.52):
+def image_to_image(img:str, prompt:str, negative_prompt:str="", seed:int=42, strength:float=0.6):
     """Image to image using stable diffusion's service. Please note that the image file name must end with .jpg not .jpeg."""
     
-
-    print('settings.original_images_dir: ', settings.INSTANCE_PATH / 'original' / img)
-
     # You can try with: ./original/hunger_in_the_olden_days.jpg
     input_filename = settings.INSTANCE_PATH / 'original' / img
-    
+
+    print('settings.original_images_dir: ', input_filename)
+        
     response = requests.post(
         f"https://api.stability.ai/v2beta/stable-image/generate/sd3",
         headers={
