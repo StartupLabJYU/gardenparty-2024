@@ -9,9 +9,17 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            text-align: center;
             margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+            padding: 20px;
+            background-color: #2c2f33; /* Dark background */
+            color: #ffffff; /* Light text color */
+            overflow-x: hidden; /* Prevent horizontal overflow */
+        }
+
+        h1, h2 {
+            margin-bottom: 10px;
+            color: #f5f5f5; /* Lighter header text */
         }
 
         .gallery-container {
@@ -23,13 +31,24 @@
         }
 
         .image-card {
+            color: #2c2f33;
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             overflow: hidden;
             max-width: 300px;
             text-align: center;
+            border-radius: 10px;
+            transition: transform 0.2s, border-radius 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
         }
+
+        /* .image-card img {
+            transition: transform 0.2s, border-radius 0.2s;
+        }
+        .image-card:hover img {
+            transform: scale(1.05);
+        } */
 
         .image-card img {
             max-width: 100%;
@@ -56,6 +75,9 @@
         }
 
     </style>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/img-comparison-slider@8/dist/index.js" ></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/img-comparison-slider@8/dist/styles.css" />
     <style>
         .coloured-slider {
             --divider-color: rgba(0, 0, 0, 0.5);
@@ -78,10 +100,7 @@
         .after figcaption {
             display: none;
         }
-
     </style>
-    <script defer src="https://cdn.jsdelivr.net/npm/img-comparison-slider@8/dist/index.js" ></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/img-comparison-slider@8/dist/styles.css" />
 </head>
 <body>
 
@@ -92,14 +111,14 @@
         <div class="image-card">
             <img-comparison-slider value="5">
             <!-- Slider with two images for comparison -->
-            <figure slot="first" class="before">
-                <img src="{{ original_urls[loop.index] }}">
-                <figcaption>Before</figcaption>
-            </figure>
-            <figure slot="second" class="after">
-                <img src="{{ generated_urls[loop.index] }}">
-                <figcaption>Before</figcaption>
-            </figure>
+                <figure slot="first" class="before">
+                    <img src="{{ original_urls[loop.index] }}">
+                    <figcaption>Original drawing</figcaption>
+                </figure>
+                <figure slot="second" class="after">
+                    <img src="{{ generated_urls[loop.index] }}">
+                    <figcaption>AI Generated version</figcaption>
+                </figure>
             </img-comparison-slider>
             <div class="info">
                 <p>Wins: <span class="wins">{{ result.wins }}</span></p>
@@ -109,15 +128,5 @@
         </div>
         {% endfor %}
     </div>
-
-    <!-- Simple script to adjust image comparison -->
-    <script>
-        const element = document.querySelectorAll(".comparison-slider");
-        const myViewer = new ImageCompare(element, {
-            verticalMode: true,
-            addCircle: true
-        }).mount();
-    </script>
-
 </body>
 </html>
