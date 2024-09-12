@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Counter, List
 from fastapi import FastAPI, HTTPException
@@ -15,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI, Request
 
+logger = logging.getLogger(__name__)
 app = create_app()
 
 # Path to the CSV file where the votes will be stored
@@ -104,7 +106,9 @@ class Vote(BaseModel):
     vote_token: str
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-app.mount("/generated_images", StaticFiles(directory=IMAGES_DIR), name="images")
+app.mount("/generated_images", StaticFiles(directory=IMAGES_DIR), name="generated_images")
+app.mount("/orginal_images", StaticFiles(directory=Path(settings.INSTANCE_PATH) / 'original'), name="orginal_images")
+
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 @app.get("/", response_class=HTMLResponse)
@@ -276,11 +280,11 @@ def get_all_images():
     image_paths = [f"/generated_images/{img.name}" for img in images]
     return image_paths
 
+@app.get("/ga")
 
 class VoteResult(BaseModel):
     image: str
-    url: str
-    votes: int
+    wins: int
     losses: int
     relative_votes: float
 
@@ -301,13 +305,43 @@ def get_scores() -> List[VoteResult]:
             displays[row['Image 2']] += 1
 
     for image in displays:
+        if not Path(IMAGES_DIR / image).exists():
+            logger.debug(f"Image {image} does not exist") 
+            continue
         r.append(VoteResult(
             image=image,
-            votes=wins[image],
+            wins=wins[image],
             losses=displays[image] - wins[image],
             relative_votes=wins[image] / displays[image]
         ))
-    
-    # Sort the results by the relative votes
-    r.sort(key=lambda x: x.relative_votes, reverse=True)
+
     return r
+
+def sort_by_results(results: List[VoteResult]) -> List[VoteResult]:
+    """
+    Sorts the results
+    """
+
+    return sorted(results, key=lambda x: (x.relative_votes, x.wins - x.losses), reverse=True)
+
+
+@app.get('/results', response_class=HTMLResponse)
+def results(request: Request):
+    """
+    Returns the results of the votes.
+    """
+    results = get_scores()
+    results = sort_by_results(results)
+    
+    origina_urls = [f"/orginal_images/{img.image}" for img in results] 
+    generated_urls = [f"/generated_images/{img.image}" for img in results]
+
+    return templates.TemplateResponse(
+        name="results.html", 
+        context={
+            "request": request,
+            "results": results,
+            "original_urls": origina_urls,
+            "generated_urls": generated_urls
+        }
+    )

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Submissions</title>
+    
+    <!-- Include CSS for the image comparison slider -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .gallery-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .image-card {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .image-card img {
+            max-width: 100%;
+            display: block;
+        }
+
+        .image-card .info {
+            padding: 10px;
+        }
+
+        .image-card .info .wins {
+            color: green;
+            font-weight: bold;
+        }
+
+        .image-card .info .losses {
+            color: red;
+            font-weight: bold;
+        }
+
+        .image-card .info .relative-votes {
+            font-size: 14px;
+            color: #555;
+        }
+
+    </style>
+    <style>
+        .coloured-slider {
+            --divider-color: rgba(0, 0, 0, 0.5);
+            --default-handle-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .slider-example-opacity-and-size {
+          --default-handle-width: 100px;
+        }
+      
+        .slider-example-opacity-and-size:focus {
+          --default-handle-opacity: 0;
+        }
+        .before,
+        .after {
+            margin: 0;
+        }
+
+        .before figcaption,
+        .after figcaption {
+            display: none;
+        }
+
+    </style>
+    <script defer src="https://cdn.jsdelivr.net/npm/img-comparison-slider@8/dist/index.js" ></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/img-comparison-slider@8/dist/styles.css" />
+</head>
+<body>
+
+    <h1 style="text-align: center;">Image Submissions Gallery</h1>
+
+    <div class="gallery-container">
+        {% for result in results %}
+        <div class="image-card">
+            <img-comparison-slider value="5">
+            <!-- Slider with two images for comparison -->
+            <figure slot="first" class="before">
+                <img src="{{ original_urls[loop.index] }}">
+                <figcaption>Before</figcaption>
+            </figure>
+            <figure slot="second" class="after">
+                <img src="{{ generated_urls[loop.index] }}">
+                <figcaption>Before</figcaption>
+            </figure>
+            </img-comparison-slider>
+            <div class="info">
+                <p>Wins: <span class="wins">{{ result.wins }}</span></p>
+                <p>Losses: <span class="losses">{{ result.losses }}</span></p>
+                <p>Relative Votes: <span class="relative-votes">{{ (result.relative_votes * 100) | int }}%</span></p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Simple script to adjust image comparison -->
+    <script>
+        const element = document.querySelectorAll(".comparison-slider");
+        const myViewer = new ImageCompare(element, {
+            verticalMode: true,
+            addCircle: true
+        }).mount();
+    </script>
+
+</body>
+</html>
