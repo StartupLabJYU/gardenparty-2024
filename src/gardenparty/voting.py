@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Counter
+from typing import Counter, List
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import csv
@@ -153,7 +153,6 @@ def index(request: Request):
         }
     )
 
-
 @app.post('/vote')
 def vote(vote: Vote):
    try:
@@ -276,3 +275,39 @@ def get_all_images():
     images = list(Path(IMAGES_DIR).glob('*'))
     image_paths = [f"/generated_images/{img.name}" for img in images]
     return image_paths
+
+
+class VoteResult(BaseModel):
+    image: str
+    url: str
+    votes: int
+    losses: int
+    relative_votes: float
+
+@app.get('/scores.json')
+def get_scores() -> List[VoteResult]:
+    """
+    Returns the scores of votes.
+    """
+    wins = Counter()
+    displays = Counter()
+    r = []
+
+    with open(CSV_FILE_PATH, mode='r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            wins[row['Winner']] += 1
+            displays[row['Image 1']] += 1
+            displays[row['Image 2']] += 1
+
+    for image in displays:
+        r.append(VoteResult(
+            image=image,
+            votes=wins[image],
+            losses=displays[image] - wins[image],
+            relative_votes=wins[image] / displays[image]
+        ))
+    
+    # Sort the results by the relative votes
+    r.sort(key=lambda x: x.relative_votes, reverse=True)
+    return r
