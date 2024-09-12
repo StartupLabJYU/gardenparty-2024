@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const messageDiv = document.getElementById('message');
     const headline = document.getElementById('headline');
     const waitingMessage = document.getElementById('waiting-message');
-    const skipButton = document.getElementById('skip-button'); // Get the skip button
+    const skipButton = document.querySelector('.skip-button');
+    const instructionText = document.querySelector('.instruction'); 
 
     const FULL_DASH_ARRAY = 283;
     const TIME_LIMIT = 2;
@@ -58,10 +59,12 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             if (response.ok) {
-                // Hide images and headline, then show the message
+                // Hide images, headline, instruction text, and skip button, then show the message
                 imageContainer.style.display = 'none';
                 headline.style.display = 'none';
                 messageDiv.style.display = 'block';
+                if (instructionText) instructionText.style.display = 'none';
+                if (skipButton) skipButton.style.display = 'none'; 
 
                 // Start countdown animation
                 startTimer(() => {
