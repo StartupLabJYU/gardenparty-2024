@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Submissions</title>
-    
-    <!-- Include CSS for the image comparison slider -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,6 +18,21 @@
         h1, h2 {
             margin-bottom: 10px;
             color: #f5f5f5; /* Lighter header text */
+        }
+
+        .instruction {
+            font-size: 0.9em;
+            color: #bbbbbb; /* Muted text color for instructions */
+            margin-bottom: 20px;
+            max-width: 600px; /* Limit the width to better match image width */
+            margin: 0 auto 20px; /* Center the instruction */
+            line-height: 1.4; /* Improve readability */
+        }
+        .styled-link {
+            color: #7289da; /* Discord blue color to match other interactive elements */
+            text-decoration: none; /* Remove underline for a cleaner look */
+            transition: color 0.3s, border-bottom 0.3s; /* Smooth transition for hover effects */
+            border-bottom: 1px solid transparent; /* Initial border for hover animation */
         }
 
         .gallery-container {
@@ -105,18 +118,23 @@
 <body>
 
     <h1 style="text-align: center;">Image Submissions Gallery</h1>
-
+    <p class="instruction">
+        <a href="/vote" class="styled-link">Voting happens here</a>. The user is presented with two images side by side and can vote on which one they prefer.
+    </p>
+    <p class="instruction">
+        The results are displayed below the images. The images are compared using a slider that can be dragged to compare the original drawing with the AI-generated version.
+    </p>
     <div class="gallery-container">
         {% for result in results %}
         <div class="image-card">
             <img-comparison-slider value="5">
             <!-- Slider with two images for comparison -->
                 <figure slot="first" class="before">
-                    <img src="{{ original_urls[loop.index] }}">
+                    <img src="{{ original_urls[loop.index0] }}">
                     <figcaption>Original drawing</figcaption>
                 </figure>
                 <figure slot="second" class="after">
-                    <img src="{{ generated_urls[loop.index] }}">
+                    <img src="{{ generated_urls[loop.index0] }}">
                     <figcaption>AI Generated version</figcaption>
                 </figure>
             </img-comparison-slider>
