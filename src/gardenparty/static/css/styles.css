@@ -9,8 +9,29 @@ body {
 }
 
 h1, h2 {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     color: #f5f5f5; /* Lighter header text */
+}
+
+.instruction {
+    font-size: 0.9em;
+    color: #bbbbbb; /* Muted text color for instructions */
+    margin-bottom: 20px;
+    max-width: 600px; /* Limit the width to better match image width */
+    margin: 0 auto 20px; /* Center the instruction */
+    line-height: 1.4; /* Improve readability */
+}
+
+.styled-link {
+    color: #7289da; /* Discord blue color to match other interactive elements */
+    text-decoration: none; /* Remove underline for a cleaner look */
+    transition: color 0.3s, border-bottom 0.3s; /* Smooth transition for hover effects */
+    border-bottom: 1px solid transparent; /* Initial border for hover animation */
+}
+
+.styled-link:hover {
+    color: #5b6eae; /* Slightly darker blue on hover */
+    border-bottom: 1px solid #5b6eae; /* Adds underline effect on hover */
 }
 
 .image-container {
@@ -38,6 +59,25 @@ h1, h2 {
     cursor: not-allowed;
     opacity: 0.6;
 }
+
+.skip-button {
+    margin-top: 10px;
+    margin-bottom: 20px; /* Adjust spacing between the button and the images */
+    padding: 8px 16px;
+    font-size: 0.9em;
+    color: #c0c0c0; /* Light gray text color */
+    background-color: #3a3d42; /* Darker, muted gray background */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.skip-button:hover {
+    background-color: #484b50; /* Slightly lighter gray on hover */
+    transform: scale(1.02); /* Smaller scale effect for minimal attention */
+}
+
 
 .message, .waiting-message {
     margin-top: 30px;

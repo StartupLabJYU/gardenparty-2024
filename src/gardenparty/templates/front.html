@@ -32,10 +32,15 @@
     {% else %}
         <input type="hidden" id="vote_token" value="{{vote_token}}">
         <h1 id="headline">{{ headline }}</h1>
+        <p class="instruction">
+            Below are two student badge candidates generated with AI based on hand-drawn suggestions received during the Garden Party. Images were posted through 
+            <a href="https://itk-pj.byteboat.fi" class="styled-link">here</a>. Click on an image to vote.
+        </p>
         <div class="image-container">
             <img src="{{img1}}" alt="Image 1" id="image1" data-name="{{img1_name}}" class="voting-image">
             <img src="{{img2}}" alt="Image 2" id="image2" data-name="{{img2_name}}" class="voting-image">
         </div>
+        <button class="skip-button" onclick="location.reload();">Skip these images</button>
         <div id="message" class="message" style="display: none;">
             <h2>{{ vote_response }}</h2>
             <div class="base-timer">

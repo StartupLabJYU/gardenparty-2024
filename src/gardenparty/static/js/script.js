@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const messageDiv = document.getElementById('message');
     const headline = document.getElementById('headline');
     const waitingMessage = document.getElementById('waiting-message');
-    
+    const skipButton = document.getElementById('skip-button'); // Get the skip button
+
     const FULL_DASH_ARRAY = 283;
     const TIME_LIMIT = 2;
     let timePassed = 0;
@@ -19,6 +20,13 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         images.forEach(image => {
             image.addEventListener('click', () => handleVote(image));
+        });
+    }
+
+    // Add event listener for skip button
+    if (skipButton) {
+        skipButton.addEventListener('click', () => {
+            location.reload(); // Refresh the page
         });
     }
 
