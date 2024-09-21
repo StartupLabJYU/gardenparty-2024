@@ -115,7 +115,7 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 def index(request: Request):
     # Attempt to get images for voting, and handle case where no images are available
     try:
-        images = get_biased_pair()[0]
+        images = get_biased_pair()
     except ValueError as _:
         return templates.TemplateResponse(
             "front.html", 
@@ -207,7 +207,7 @@ def test_page(request: Request):
 
 def get_biased_pair():
     """
-    Read the vote, and use biased sampling to return a pair of images.
+    Read the votes, and use biased sampling to return a pair of images.
     """
     # Get the full list of all generated images
     images = list(Path(IMAGES_DIR).glob('*'))
@@ -216,41 +216,63 @@ def get_biased_pair():
     # Filter out images that have their creation time less than 2 minutes ago
     image_paths = [img for img in image_paths if time.time() - os.path.getctime(IMAGES_DIR / img.split("/")[-1]) > 120]
 
-    # Read the CSV file and count the number of times each image has appeared in a vote
-    names_and_counts = {}
+    # Create a matrix to hold votes, and a corresponding matrix to hold related pairs of images.
+    # Matrix cells are in same order as in the image_names variable (left to right, top to bottom)
+    image_names = [i.split("/")[-1] for i in image_paths]
+    vote_matrix = np.full((len(image_names), len(image_names)), 0.1)
+    np.fill_diagonal(vote_matrix, 0)
+    pair_matrix = np.empty((5, 5), dtype=object)
+    for y in list(range(0, len(image_names))):
+        for x in list(range(0, len(image_names))):
+            pair_matrix[y, x] = (image_names[y], image_names[x])
+
+    # Read the votes so far, and fill the vote matrix correspondingly
+    vote_count = 0
     with open(CSV_FILE_PATH, mode='r') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            if row['Image 1'] in names_and_counts:
-                names_and_counts[row['Image 1']] += 1
+            x_index = image_names.index(row['Image 1'])
+            y_index = image_names.index(row['Image 2'])
+            if vote_matrix[x_index, y_index] < 1:
+                vote_matrix[x_index, y_index] = 1
             else:
-                names_and_counts[row['Image 1']] = 1
+                vote_matrix[x_index, y_index] += 1
+            vote_count += 1
 
-            if row['Image 2'] in names_and_counts:
-                names_and_counts[row['Image 2']] += 1
-            else:
-                names_and_counts[row['Image 2']] = 1
-    total_count = sum(names_and_counts.values())
+    # Create a new array that has all cells from matrix EXCEPT the diagonal (cant choose between same image)
+    # Remove the diagonal from flattened matrix, and remove corresponding pairs from the pair matrix
+    flat_vote_matrix = vote_matrix.flatten()
+    flat_pair_matrix = pair_matrix.flatten()
+    remove_indexes = np.ones(flat_vote_matrix.shape, dtype=bool)
+    for index, value in enumerate(flat_vote_matrix):
+        if value == 0:
+            remove_indexes[index] = False
+    flat_vote_matrix = flat_vote_matrix[remove_indexes]
+    flat_pair_matrix = flat_pair_matrix[remove_indexes]
 
     # Without votes, use unbiased sampling
-    if total_count == 0:
+    if vote_count == 0:
         unbiased_pair = np.random.choice(image_paths, [1,2], replace=False)
         return unbiased_pair
-
-    # Add potential missing vote counts to the dictionary as values near to zero (to avoid division by zero)
-    for img in image_paths:
-        if img.split("/")[-1] not in names_and_counts:
-            names_and_counts[img.split("/")[-1]] = 0.01
-        
-    # Use the counts to create a biased sampling distribution. 
-    # Images that have appeared more often will be less likely to be selected
-    counts = np.array([names_and_counts[img.split("/")[-1]] for img in image_paths])
-    inverse_counts = 1 / counts
+    
+    # Add an extra element that makes sure even the most voted item has a small chance of appearing in a vote
+    most_voted = np.max(flat_vote_matrix)
+    flat_vote_matrix = np.insert(flat_vote_matrix, 0, most_voted + 1, axis=0)
+    flat_pair_matrix = np.insert(flat_pair_matrix, 0, 0, axis=0)
+    
+    # Calculate the weights for choosing the biased pair
+    inverse_counts = 1 / flat_vote_matrix
     weights = inverse_counts / inverse_counts.sum()
-
+    
     # Select a pair of images using the biased sampling distribution
-    biased_pair = np.random.choice(image_paths, [1,2], p=weights, replace=False)
-    return biased_pair
+    biased_pair = np.random.choice(flat_pair_matrix, p=weights, replace=False)
+
+    # In case the extra element is actually chosen, choose again (the extra element is just 0)
+    while not biased_pair:
+        biased_pair = np.random.choice(flat_pair_matrix, p=weights, replace=False)
+
+    # Return the result
+    return (f"/generated_images/{biased_pair[0]}", f"/generated_images/{biased_pair[1]}")
 
 
 @app.get('/gallery')
