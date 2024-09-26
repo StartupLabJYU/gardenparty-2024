@@ -30,61 +30,63 @@ current_voting_tokens = {}
 
 # Headlines for the voting page
 headlines = [
-    "Which image do you prefer?",
-    "Click on the image you like more!",
-    "Vote for your favourite image!",
-    "Which image is better?",
-    "Choose the best image!",
-    "Help us settle this image debate!",
-    "Make your choice before we call it a tie!",
-    "Pick your hero from these image contenders!",
-    "Which image makes you smile more?",
-    "Be the judge! Which image wins the day?",
-    "Let’s see which image reigns supreme!",
-    "Your opinion matters! Choose the winning image!",
-    "Pick the image that makes your heart skip a beat!",
-    "Help decide the image showdown!",
-    "Which image deserves the crown?",
-    "Time to play judge! Which image is a winner?",
-    "Unleash your inner critic! Pick the best image!",
-    "Which image is the true superstar?",
-    "Choose your champion from these image contenders!",
-    "Click the image that tickles your fancy!",
-    "Your vote decides the fate of these images!",
-    "Cast your vote and make a difference!",
-    "Every vote counts! Choose your favorite!",
-    "Help us choose the ultimate image champion!",
-    "Be a part of the image battle! Make your pick!"
+    "Kumpi kuva miellyttää sinua enemmän?",
+    "Klikkaa kuvaa, josta pidät enemmän!",
+    "Äänestä suosikkikuvaasi!",
+    "Mikä kuva on parempi?",
+    "Valitse paras kuva!",
+    "Auta meitä ratkaisemaan tämä kuvakiista!",
+    "Tee valintasi ennen kuin julistamme tasapelin!",
+    "Valitse sankarisi näistä kuvahaastajista!",
+    "Mikä kuva saa sinut hymyilemään enemmän?",
+    "Ole tuomari! Mikä kuva voittaa tänään?",
+    "Katsotaan, mikä kuva hallitsee!",
+    "Mielipiteelläsi on väliä! Valitse voittajakuva!",
+    "Valitse kuva, joka saa sydämesi sykähtelemään!",
+    "Auta päättämään kuvakohtaaminen!",
+    "Mikä kuva ansaitsee kruunun?",
+    "On aika toimia tuomarina! Mikä kuva on voittaja?",
+    "Vapauta sisäinen kriitikkosi! Valitse paras kuva!",
+    "Mikä kuva on todellinen supertähti?",
+    "Valitse mestarisi näistä kuvahaastajista!",
+    "Klikkaa kuvaa, joka miellyttää sinua eniten!",
+    "Äänesi päättää näiden kuvien kohtalon!",
+    "Anna äänesi ja vaikuta lopputulokseen!",
+    "Jokainen ääni on tärkeä! Valitse suosikkisi!",
+    "Auta meitä valitsemaan lopullinen kuvamestari!",
+    "Ole osa kuvataistelua! Tee valintasi!"
 ]
+
 
 # Voting responses
 voting_responses = [
-    "Thanks for letting us know your preference!",
-    "Your choice has been recorded. Thanks for voting!",
-    "We appreciate your vote! Thanks for helping us decide!",
-    "Thanks for your input! We value your choice!",
-    "Your vote is in! Thanks for helping us choose the best image!",
-    "Thanks for breaking the tie! We appreciate your vote!",
-    "Your vote has saved the day! Thanks for being awesome!",
-    "You've picked a hero! Thanks for helping us choose!",
-    "Thanks for making us smile with your vote!",
-    "You’ve crowned a winner! Thanks for your vote!",
-    "Thank you for choosing the supreme image!",
-    "We value your opinion! Thanks for casting your vote!",
-    "Your pick has been noted! Thanks for adding your touch!",
-    "Thanks for making the decision in the image showdown!",
-    "The image crown is awarded, thanks to your vote!",
-    "Judge complete! Thanks for making your choice!",
-    "Your inner critic is spot on! Thanks for voting!",
-    "You’ve chosen the superstar! Thanks for your vote!",
-    "Champion chosen! Thanks for picking the best contender!",
-    "Tickled our fancy with your choice! Thanks for voting!",
-    "Your vote has made a difference! Thanks for participating!",
-    "Thanks for casting your vote and shaping the outcome!",
-    "Every vote counts, and we appreciate yours! Thanks!",
-    "Thanks for helping us choose the ultimate image champion!",
-    "You’ve been a key player in the image battle! Thanks for voting!"
+    "Kiitos, että kerroit meille mieltymyksesi!",
+    "Valintasi on tallennettu. Kiitos äänestämisestä!",
+    "Arvostamme ääntäsi! Kiitos, että autat meitä päättämään!",
+    "Kiitos mielipiteestäsi! Arvostamme valintaasi!",
+    "Äänesi on kirjattu! Kiitos, että autat valitsemaan parhaan kuvan!",
+    "Kiitos, että ratkoit tasapelin! Arvostamme ääntäsi!",
+    "Äänesi pelasti tilanteen! Kiitos, että olet mahtava!",
+    "Olet valinnut sankarin! Kiitos, että autat meitä valitsemaan!",
+    "Kiitos, että sait meidät hymyilemään äänelläsi!",
+    "Olet kruunannut voittajan! Kiitos äänestäsi!",
+    "Kiitos, että valitsit parhaan kuvan!",
+    "Arvostamme mielipidettäsi! Kiitos, että annoit äänesi!",
+    "Valintasi on huomioitu! Kiitos, että jätit jälkesi!",
+    "Kiitos, että ratkaisit kuvakohtaamisen!",
+    "Kuvakruunu on jaettu, kiitos äänestäsi!",
+    "Tuomarin tehtävä suoritettu! Kiitos valinnastasi!",
+    "Sisäinen kriitikkosi osui oikeaan! Kiitos äänestämisestä!",
+    "Olet valinnut supertähden! Kiitos äänestäsi!",
+    "Mestari on valittu! Kiitos, että valitsit parhaan haastajan!",
+    "Valintasi ilahdutti meitä! Kiitos äänestämisestä!",
+    "Äänesi on tehnyt eron! Kiitos osallistumisesta!",
+    "Kiitos, että annoit äänesi ja muokkasit lopputulosta!",
+    "Jokainen ääni merkitsee, ja arvostamme sinun ääntäsi! Kiitos!",
+    "Kiitos, että autat meitä valitsemaan lopullisen kuvamestarin!",
+    "Olet ollut avainpelaaja kuvataistelussa! Kiitos äänestämisestä!"
 ]
+
 
 
 
@@ -107,13 +109,14 @@ class Vote(BaseModel):
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/generated_images", StaticFiles(directory=IMAGES_DIR), name="generated_images")
-app.mount("/orginal_images", StaticFiles(directory=Path(settings.INSTANCE_PATH) / 'original'), name="orginal_images")
+app.mount("/original_images", StaticFiles(directory=Path(settings.INSTANCE_PATH) / 'original'), name="original_images")
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     # Attempt to get images for voting, and handle case where no images are available
+    images = get_biased_pair()
     try:
         images = get_biased_pair()
     except ValueError as _:
@@ -133,6 +136,7 @@ def index(request: Request):
 
     # Create vote token and get image names
     vote_token = str(uuid.uuid4())
+    print(f"IMAGEEEES:\n{images}")
     img1_name = images[0].split("/")[-1]
     img2_name = images[1].split("/")[-1]
     current_voting_tokens[vote_token] = [img1_name, img2_name]
@@ -215,7 +219,7 @@ def get_biased_pair():
 
     # Filter out images that have their creation time less than 2 minutes ago
     image_paths = [img for img in image_paths if time.time() - os.path.getctime(IMAGES_DIR / img.split("/")[-1]) > 120]
-
+    
     # Create a matrix to hold votes, and a corresponding matrix to hold related pairs of images.
     # Matrix cells are in same order as in the image_names variable (left to right, top to bottom)
     image_names = [i.split("/")[-1] for i in image_paths]
@@ -253,7 +257,7 @@ def get_biased_pair():
     # Without votes, use unbiased sampling
     if vote_count == 0:
         unbiased_pair = np.random.choice(image_paths, [1,2], replace=False)
-        return unbiased_pair
+        return unbiased_pair[0]
     
     # Add an extra element that makes sure even the most voted item has a small chance of appearing in a vote
     most_voted = np.max(flat_vote_matrix)
@@ -355,7 +359,7 @@ def results(request: Request):
     results = get_scores()
     results = sort_by_results(results)
     
-    origina_urls = [f"/orginal_images/{img.image}" for img in results] 
+    origina_urls = [f"/original_images/{img.image}" for img in results] 
     generated_urls = [f"/generated_images/{img.image}" for img in results]
 
     return templates.TemplateResponse(

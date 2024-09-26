@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Submissions</title>
+    <title>Kuvat</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -117,12 +117,12 @@
 </head>
 <body>
 
-    <h1 style="text-align: center;">Image Submissions Gallery</h1>
+    <h1 style="text-align: center;">Kuvagalleria</h1>
     <p class="instruction">
-        <a href="/" class="styled-link">Voting happens here</a>. The user is presented with two images side by side and can vote on which one they prefer.
+        <a href="/" class="styled-link">Äänestäminen tapahtuu täällä</a>. Käyttäjä saa kaksi kuvaa joista voi valita paremman.
     </p>
     <p class="instruction">
-        The results are displayed below the images. The images are compared using a slider that can be dragged to compare the original drawing with the AI-generated version.
+        Äänestyksen tulokset näkyvät kuvien alapuolella. Kuvien vertailu onnistuu raahaamalla kuvien päällä näkyvää viivaa.
     </p>
     <div class="gallery-container">
         {% for result in results %}
@@ -131,17 +131,17 @@
             <!-- Slider with two images for comparison -->
                 <figure slot="first" class="before">
                     <img src="{{ original_urls[loop.index0] }}">
-                    <figcaption>Original drawing</figcaption>
+                    <figcaption>Alkuperäinen piirros</figcaption>
                 </figure>
                 <figure slot="second" class="after">
                     <img src="{{ generated_urls[loop.index0] }}">
-                    <figcaption>AI Generated version</figcaption>
+                    <figcaption>AI piirros</figcaption>
                 </figure>
             </img-comparison-slider>
             <div class="info">
-                <p>Wins: <span class="wins">{{ result.wins }}</span></p>
-                <p>Losses: <span class="losses">{{ result.losses }}</span></p>
-                <p>Relative Votes: <span class="relative-votes">{{ (result.relative_votes * 100) | int }}%</span></p>
+                <p>Voitot: <span class="wins">{{ result.wins }}</span></p>
+                <p>Tappiot: <span class="losses">{{ result.losses }}</span></p>
+                <p>Suhteelliset äänet: <span class="relative-votes">{{ (result.relative_votes * 100) | int }}%</span></p>
             </div>
         </div>
         {% endfor %}

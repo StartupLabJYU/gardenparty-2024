@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Voting</title>
+    <title>Tutkijoiden yö, äänestys</title>
     <link rel="stylesheet" href="static/css/front.css">
 </head>
 <body>
     {% if skip %}
-        <h1 id="headline">Waiting for more images...</h1>
+        <h1 id="headline">Odotetaan lisää kuvia...</h1>
         <div id="waiting-message" class="waiting-message">
             <div class="base-timer">
                 <svg class="base-timer__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -33,14 +33,13 @@
         <input type="hidden" id="vote_token" value="{{vote_token}}">
         <h1 id="headline">{{ headline }}</h1>
         <p class="instruction">
-            Below are two student badge candidates generated with AI based on hand-drawn suggestions received during the Garden Party. Images were posted through 
-            <a href="https://itk-pj.byteboat.fi" class="styled-link">here</a>. Click on an image to vote. <a href="/results" class="styled-link">Candidates can be viewed here</a>.
+            Alla on kaksi tutkijoiden yössä piirrettyä kuvaa joita on paranneltu tekoälyn avulla. Kuvat lisättiin <a href="https://itk-pj.byteboat.fi" class="styled-link">tämän sivun</a> kautta. Klikkaa parempaa kuvaa äänestääksesi sitä. <a href="/results" class="styled-link">Eri kuvat ovat nähtävissä täällä.</a>
         </p>
         <div class="image-container">
             <img src="{{img1}}" alt="Image 1" id="image1" data-name="{{img1_name}}" class="voting-image">
             <img src="{{img2}}" alt="Image 2" id="image2" data-name="{{img2_name}}" class="voting-image">
         </div>
-        <button class="skip-button" onclick="location.reload();">Skip these images</button>
+        <button class="skip-button" onclick="location.reload();">Ohita nämä kuvat</button>
         <div id="message" class="message" style="display: none;">
             <h2>{{ vote_response }}</h2>
             <div class="base-timer">

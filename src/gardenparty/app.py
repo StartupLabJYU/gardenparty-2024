@@ -22,6 +22,7 @@ def create_app():
     @app.on_event("startup")
     async def startup_event():
         # Create the media directories if they don't exist
+        (pathlib.Path(settings.INSTANCE_PATH)).mkdir(exist_ok=True, mode=0o777, parents=True)
         (pathlib.Path(settings.INSTANCE_PATH) / 'original').mkdir(exist_ok=True, mode=0o777, parents=True)
         (pathlib.Path(settings.INSTANCE_PATH) / 'generated').mkdir(exist_ok=True, mode=0o777, parents=True)
 
