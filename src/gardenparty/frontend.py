@@ -32,9 +32,9 @@ DESCRIPTION = r"""
 
 0. 🔄 (Päivitä sivu jos edellinen kuva on näkyvillä)
 1. 🎨 🫶 Piirrä mieleisesi kuva paperille
-2. 📷 📂 Skannaa kuva kännykän kameralla
-3. 🤖 ⚙️ Anna tekoälyn tehdä taikojansa
-4. 🖼️ 🗳️ Äänestä parasta kuvaa!
+2. 📷 📂 Skannaa kuva tietokoneen tai kännykän kameralla
+3. ✍️🤔 Jos haluat, valitse teema ja/tai muokkaa tekoälyn käsitystä piirroksestasi.
+4. 🤖 ⚙️ Klikkaa "Generoi", ja odota hetki. Tekoäly piirtää sinulle hienon kuvan!
 """
 
 BTN_ON_PREMISES = "Agora event crop"
@@ -80,12 +80,22 @@ def ui_chatbot(history=[]):
         history,
         type="messages",
         label="Patcher 3000",
-        placeholder=DESCRIPTION,
+        placeholder=None,
         show_label=False,
         scale=1,
     )
     return chatbot
 
+def instructionbot(history=[]):
+    i_bot = gr.Chatbot(
+        history,
+        type="messages",
+        label="Instruction field",
+        placeholder=DESCRIPTION,
+        show_label=False,
+        scale=1,
+    )
+    return i_bot
 
 def get_sketch_description(image) -> str:
     # TODO  HTTP call
@@ -128,6 +138,8 @@ def add_image_description(img_input, chat_history):
 
         yield ui_chatbot(chat_history), "..."
 
+        autocrop(img_input, target_file)
+        
         # if BTN_STRAIGHTEN in options:
         #     autocrop_and_straighten(img_input, target_file)
         # else:
@@ -191,30 +203,54 @@ def generate_image(chat_history, img_input, prompt, theme):
         chat_history += [
             ChatMessage(
                 role="assistant",
-                content=f"Generoidaan kuvaa ⚙️ ..."
+                content=f"Generoidaan kuvaa, vaihe 1/2 ⚙️  ..."
             )
         ]
+
+        yield ui_chatbot(chat_history)
 
         generative_prompt = generate_themed_prompt(theme, prompt)
         
         positive = generative_prompt["prompt"]
         negative = generative_prompt["negative_prompt"]
-        
-        # chat_history += [ChatMessage(
-        #         role="assistant",
-        #         content=f"Generating image with theme {theme!r} and using the following promt:\n\n{positive!r}\n\n{negative!r}"
-        #     )]
-    
+
+        img2img = image_to_image(fname, positive, negative)
+
+        chat_history += [
+            ChatMessage(
+                role="assistant",
+                content=f"Generoidaan kuvaa, vaihe 2/2 ⚙️  ..."
+            )
+        ]
+
         yield ui_chatbot(chat_history)
+
+        description2 = get_sketch_description(img2img['output_filename'])
+
+        generative_prompt = generate_themed_prompt(theme, description2)
+        
+        positive = generative_prompt["prompt"]
+        negative = generative_prompt["negative_prompt"]
 
         img2img = image_to_image(fname, positive, negative)
     
-        chat_history += [ChatMessage(
-            role="user",
-            content=img2img['output_filename']
-        )]
+        chat_history += [
+            ChatMessage(
+                role="assistant",
+                content="Kuvasi on valmis!\n"
+            ),
+            ChatMessage(
+                role="assistant",
+                content=img2img['output_filename']
+            )
+        ]
 
         yield ui_chatbot(chat_history)
+
+        chat_history += [ChatMessage(
+            role="assistant",
+            content="**Linkki kuvaasi**: Kuvasi ilmestyy galleriaan hetken päästä. Klikkaa [tästä](https://itk-pj-voting.byteboat.fi/results) siirtyäksesi galleriaan."
+        )]
 
         # chat_history += [
         #     ChatMessage(
@@ -227,10 +263,10 @@ def generate_image(chat_history, img_input, prompt, theme):
         #     )
         # ]
 
-        chat_history += [ChatMessage(
-            role="user",
-            content="**Voting**: You can [now go and vote for your favorite – or own – AI-patched image!](https://itk-pj-voting.byteboat.fi/)\n![](https://itk-pj-voting.byteboat.fi/static/voting_qr.png)"
-        )]
+        # chat_history += [ChatMessage(
+        #     role="user",
+        #     content="**Voting**: You can [now go and vote for your favorite – or own – AI-patched image!](https://itk-pj-voting.byteboat.fi/)\n![](https://itk-pj-voting.byteboat.fi/static/voting_qr.png)"
+        # )]
 
         yield ui_chatbot(chat_history)
         
@@ -244,148 +280,6 @@ def generate_image(chat_history, img_input, prompt, theme):
         gr.Error("An error occurred while processing the image.")
         yield ui_chatbot(chat_history)
         return 
-
- 
-
-
-
-
-    # gr.Info("ℹ️ Image has been created! Go vote!", duration=10)
-    # return 
-
-
-def process(chat_history, img_input, options, theme, email):
-
-
-    if not img_input:
-        gr.Error("No image provided. If you attempted camera, please tap the camera button in the preview window.")
-        return
-
-    gr.Info("Starting image processing...", duration=5)
-
-    # Use sha256 hash of the image as filename
-    with open(img_input, "rb") as fd:
-        #sha = hashlib.sha256(fd.read()).hexdigest()
-        sha = uuid4()
-        fname = f"{sha}.jpg"
-
-    target_file = settings.INSTANCE_PATH / "original" / fname
-
-    try:
-        chat_history += [
-            ChatMessage(
-                role="assistant",
-                content=f"Image received. Processing...",
-            )
-        ]
-
-        yield ui_chatbot(chat_history), gr.Image(img_input, type="filepath", interactive=False)
-
-        if BTN_STRAIGHTEN in options:
-            autocrop_and_straighten(img_input, target_file)
-        else:
-            autocrop(img_input, target_file)
-
-        yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
-
-        
-        # chat_history += [
-        #     ChatMessage(
-        #         role="assistant",
-        #         content=gr.Image(target_file, type="filepath", interactive=False)
-        #     )
-        # ]
-
-        # chat_history += [
-        #     ChatMessage(
-        #         role="assistant",
-        #         content="Do you wish to provide an email address to participate in the contest?"
-        #     )
-        # ]
-        # if email:
-        #     chat_history += [
-        #         ChatMessage(
-        #             role="user",
-        #             content="✅ Sure!"
-        #         )
-        #     ]
-        #     save_email(fname, email)
-        # else:
-        #     chat_history += [
-        #         ChatMessage(
-        #             role="user",
-        #             content="⛔ No thanks."
-        #         )
-        #     ]
-
-        yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
-
-    except Exception as e:
-
-        chat_history += [
-            ChatMessage(
-                role="assistant",
-                content=f"An error occurred while processing the image: {e}",
-            )
-        ]
-        gr.Error("An error occurred while processing the image.")
-        yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
-        return 
-
-    chat_history += [
-        ChatMessage(
-            role="assistant",
-            content="Looking at the picture... 🧐",
-        )
-    ]
-
-    yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
-
-    llm_response = get_sketch_description(fname)
-
-    # Break from here
-
-    chat_history += [
-        ChatMessage(
-            role="user",
-            content=f"{llm_response}"
-        ),
-        ChatMessage(
-            role="assistant",
-            content="Ok 👍."
-        )
-    ]
-
-    yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
-
-    generative_prompt = generate_themed_prompt(theme, llm_response)
-    
-    positive = generative_prompt["prompt"]
-    negative = generative_prompt["negative_prompt"]
-    
-    chat_history += [ChatMessage(
-            role="assistant",
-            content=f"Generating image with theme {theme!r} and using the following promt:\n\n{positive!r}\n\n{negative!r}"
-        )]
-
-    yield ui_chatbot(chat_history), gr.Image(target_file, type="filepath", interactive=False)
-
-    img2img = image_to_image(fname, positive, negative)
-    
-    chat_history += [ChatMessage(
-        role="user",
-        content=img2img['output_filename']
-    )]
-
-    chat_history += [ChatMessage(
-        role="user",
-        content="**Voting**: You can [now go and vote for your favorite – or own – AI-patched image!](https://itk-pj-voting.byteboat.fi/)\n![](https://itk-pj-voting.byteboat.fi/static/voting_qr.png)"
-    )]
-
-    yield ui_chatbot(chat_history), gr.Image(img2img['output_filename'], type="filepath", interactive=False)
-
-    gr.Info("ℹ️ Image has been created! Go vote!", duration=10)
-    return 
 
 
 def gra_chatapp():
@@ -436,6 +330,8 @@ def gra_chatapp():
     with gr.Blocks(fill_height=True, title="Tutkijoiden yö 📸", css=custom_css, js = custom_js) as app:
 
         with gr.Row(equal_height=True):
+            with gr.Column():
+                instruction_bot = instructionbot()
             
             with gr.Column():
                 img_input = gr.Image(
@@ -447,9 +343,10 @@ def gra_chatapp():
                     show_label=False,
                     elem_id="image-upload"
                 )
-
+        # with gr.Row():
+            # submit = gr.Button("Submit")
+        with gr.Row():
             with gr.Column(elem_id="params"):
-                
                 # TODO: Should themes be enabled
                 themes = get_image_themes()
                 # Always include the "drawing" as the first option
@@ -489,11 +386,8 @@ def gra_chatapp():
                 # )
 
                 generate = gr.Button("Generoi! 🤖")
-
-        # with gr.Row():
-            # submit = gr.Button("Submit")
-        with gr.Row():
-            chatbot = ui_chatbot()
+            with gr.Column():
+                chatbot = ui_chatbot()
 
         img_input.input(add_image_description, inputs=[img_input, chatbot], outputs=[chatbot, prompt])
         generate.click(generate_image, inputs=[chatbot, img_input, prompt, theme], outputs=[chatbot])

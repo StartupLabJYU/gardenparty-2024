@@ -21,6 +21,7 @@ app = create_app()
 
 # Path to the CSV file where the votes will be stored
 CSV_FILE_PATH = Path(settings.INSTANCE_PATH) / 'vote_results.csv'
+MODERATION_FILE_PATH = Path(settings.INSTANCE_PATH) / 'accepted.csv'
 IMAGES_DIR = Path(settings.INSTANCE_PATH) / 'generated'
 STATIC_DIR = get_pkg_path() / 'static'
 TEMPLATES_DIR = get_pkg_path() / 'templates'
@@ -99,6 +100,11 @@ def startup_event():
             writer = csv.writer(file)
             writer.writerow(['Image 1', 'Image 2', 'Winner', 'Timestamp'])  # Write header if the file is created
 
+    if not os.path.exists(MODERATION_FILE_PATH):
+        with open(MODERATION_FILE_PATH, mode='w') as file:
+            writer = csv.writer(file)
+            writer.writerow(['filename', 'status'])  # Write header if the file is created
+
 
 # Pydantic model for vote data validation
 class Vote(BaseModel):
@@ -136,7 +142,6 @@ def index(request: Request):
 
     # Create vote token and get image names
     vote_token = str(uuid.uuid4())
-    print(f"IMAGEEEES:\n{images}")
     img1_name = images[0].split("/")[-1]
     img2_name = images[1].split("/")[-1]
     current_voting_tokens[vote_token] = [img1_name, img2_name]
@@ -279,6 +284,45 @@ def get_biased_pair():
     return (f"/generated_images/{biased_pair[0]}", f"/generated_images/{biased_pair[1]}")
 
 
+# @app.get('/moderation')
+# def moderation(request: Request):
+#     # Get the full list of all generated images
+#     images = list(Path(IMAGES_DIR).glob('*'))
+#     image_paths = [f"/generated_images/{img.name}" for img in images]
+
+#     # Read the votes so far, and fill the vote matrix correspondingly
+#     with open(MODERATION_FILE_PATH, mode='r') as file:
+#         reader = csv.DictReader(file)
+#         for row in reader:
+#             x_index = image_names.index(row['Image 1'])
+#             y_index = image_names.index(row['Image 2'])
+#             if vote_matrix[x_index, y_index] < 1:
+#                 vote_matrix[x_index, y_index] = 1
+#             else:
+#                 vote_matrix[x_index, y_index] += 1
+#             vote_count += 1
+
+
+# @app.get('/get_next_unmoderated')
+# def get_next_unmoderated():
+#     """
+#     Returns a single file that is unmoderated
+#     """
+#     images = list(Path(IMAGES_DIR).glob('*'))
+#     image_paths = [f"/generated_images/{img.name}" for img in images]
+
+#     # Find the filepaths that are not yet in the moderation file
+#     accepted_dict = {}
+#     with open(MODERATION_FILE_PATH, mode='r') as file:
+#         reader = csv.DictReader(file)
+#         for row in reader:
+#             accepted_dict[row['filename']] = row["status"]
+
+#     for image in image_paths:
+
+#     return image_paths
+
+
 @app.get('/gallery')
 def gallery(request: Request):
     """
@@ -303,6 +347,8 @@ def get_all_images():
     Include all image type files
     """
     images = list(Path(IMAGES_DIR).glob('*'))
+
+    # Compare the list of images to list of accepted images
     image_paths = [f"/generated_images/{img.name}" for img in images]
     return image_paths
 
@@ -356,18 +402,21 @@ def results(request: Request):
     """
     Returns the results of the votes.
     """
-    results = get_scores()
-    results = sort_by_results(results)
-    
-    origina_urls = [f"/original_images/{img.image}" for img in results] 
-    generated_urls = [f"/generated_images/{img.image}" for img in results]
+    # results = get_scores()
+    # results = sort_by_results(results)
+
+    images = list(Path(IMAGES_DIR).glob('*'))
+
+    # Compare the list of images to list of accepted images
+    generated_urls = [f"/generated_images/{img.name}" for img in images]
+    original_urls = [f"/original_images/{img.name}" for img in images] 
 
     return templates.TemplateResponse(
         name="results.html", 
         context={
             "request": request,
-            "results": results,
-            "original_urls": origina_urls,
+            # "results": results,
+            "original_urls": original_urls,
             "generated_urls": generated_urls
         }
     )
