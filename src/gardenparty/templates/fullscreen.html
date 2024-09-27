@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fullscreen Image Slideshow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #slideshow {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Main slideshow image */
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            z-index: 2;
+            transition: opacity 1s ease-in-out, transform 20s ease-in-out;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); /* Subtle shadow effect */
+        }
+
+        /* Zoom effect for the main slide */
+        .slide.visible {
+            opacity: 1;
+            transform: scale(1.02); /* Slight zoom for added flair */
+        }
+
+        /* Ambient background with Ken Burns effect (slow zoom) */
+        .ambient-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px) brightness(70%) saturate(50%);
+            transform: scale(1.1); /* Slight initial zoom for dynamic effect */
+            opacity: 0;
+            z-index: 1;
+            transition: opacity 1s ease-in-out, transform 20s ease-in-out;
+        }
+
+        /* Slow Ken Burns effect for ambient */
+        .ambient-background.visible {
+            opacity: 1;
+            transform: scale(1.2); /* Slight zoom during the slideshow */
+        }
+
+        .visible-text {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="slideshow">
+        <!-- Ambient background layer -->
+        <div class="ambient-background" id="ambient"></div>
+
+        <!-- Main Image layer -->
+        <div class="slide" id="slide"></div>
+    </div>
+
+    <script>
+        let currentSlide = document.getElementById('slide');
+        let ambientLayer = document.getElementById('ambient');
+        const intervalTime = 25000; // 25 seconds interval
+
+        function fetchNextImage() {
+            fetch('/pair.json')
+                .then(response => response.json())
+                .then(data => {
+                    const nextImage = data.image1;  // Only use one image to avoid flickering
+
+                    // Set the main image for the current slide
+                    currentSlide.style.backgroundImage = `url(${nextImage})`;
+
+                    // Set the ambient blurred background for the current image
+                    ambientLayer.style.backgroundImage = `url(${nextImage})`;
+
+
+                    // Make both the current image, ambient, and caption visible
+                    currentSlide.classList.add('visible');
+                    ambientLayer.classList.add('visible');
+
+                    // Continue to the next image after the interval
+                    setTimeout(changeSlide, intervalTime);
+                })
+                .catch(error => {
+                    console.error('Error fetching image:', error);
+                });
+        }
+
+        function changeSlide() {
+            // Hide the current image, ambient, and caption
+            currentSlide.classList.remove('visible');
+            ambientLayer.classList.remove('visible');
+            caption.classList.remove('visible-text');
+
+            // Fetch and show the next image after a brief fade-out
+            setTimeout(fetchNextImage, 2000);  // Wait for the fade-out before fetching the next image
+        }
+
+        // Start the slideshow
+        fetchNextImage();
+    </script>
+</body>
+</html>
