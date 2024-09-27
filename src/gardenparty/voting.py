@@ -228,9 +228,10 @@ def get_biased_pair():
     # Create a matrix to hold votes, and a corresponding matrix to hold related pairs of images.
     # Matrix cells are in same order as in the image_names variable (left to right, top to bottom)
     image_names = [i.split("/")[-1] for i in image_paths]
-    vote_matrix = np.full((len(image_names), len(image_names)), 0.1)
+    vote_matrix = np.full((len(image_names), len(image_names)), 0.01)
     np.fill_diagonal(vote_matrix, 0)
-    pair_matrix = np.empty((5, 5), dtype=object)
+    
+    pair_matrix = np.empty((len(image_names), len(image_names)), dtype=object)
     for y in list(range(0, len(image_names))):
         for x in list(range(0, len(image_names))):
             pair_matrix[y, x] = (image_names[y], image_names[x])
@@ -240,13 +241,16 @@ def get_biased_pair():
     with open(CSV_FILE_PATH, mode='r') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            x_index = image_names.index(row['Image 1'])
-            y_index = image_names.index(row['Image 2'])
-            if vote_matrix[x_index, y_index] < 1:
-                vote_matrix[x_index, y_index] = 1
-            else:
-                vote_matrix[x_index, y_index] += 1
-            vote_count += 1
+            try:
+                x_index = image_names.index(row['Image 1'])
+                y_index = image_names.index(row['Image 2'])
+                if vote_matrix[x_index, y_index] < 1:
+                    vote_matrix[x_index, y_index] = 1
+                else:
+                    vote_matrix[x_index, y_index] += 1
+                vote_count += 1
+            except ValueError as _:
+                pass
 
     # Create a new array that has all cells from matrix EXCEPT the diagonal (cant choose between same image)
     # Remove the diagonal from flattened matrix, and remove corresponding pairs from the pair matrix
