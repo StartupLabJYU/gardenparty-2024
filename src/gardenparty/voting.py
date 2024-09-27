@@ -11,7 +11,7 @@ import uuid
 import numpy as np
 from .app import create_app, get_pkg_path, settings
 from .models import Vote
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI, Request
@@ -329,7 +329,11 @@ def get_biased_pair():
 @app.get('/pair.json')
 def get_image_pair():
     pair = get_biased_pair()
-    return {"image1": pair[0], "image2": pair[1]}
+    
+    response = JSONResponse(content={"image1": pair[0], "image2": pair[1]})
+    response.headers["Cache-Control"] = "max-age=15"
+
+    return response
 
 
 @app.get('/fullscreen')
