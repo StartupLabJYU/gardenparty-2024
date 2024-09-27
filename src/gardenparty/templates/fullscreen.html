@@ -96,7 +96,7 @@
                     ambientLayer.style.backgroundImage = `url(${nextImage})`;
 
 
-                    // Make both the current image, ambient, and caption visible
+                    // Make both the current image, ambient visible
                     currentSlide.classList.add('visible');
                     ambientLayer.classList.add('visible');
 
@@ -109,10 +109,9 @@
         }
 
         function changeSlide() {
-            // Hide the current image, ambient, and caption
+            // Hide the current image, ambient
             currentSlide.classList.remove('visible');
             ambientLayer.classList.remove('visible');
-            caption.classList.remove('visible-text');
 
             // Fetch and show the next image after a brief fade-out
             setTimeout(fetchNextImage, 2000);  // Wait for the fade-out before fetching the next image
