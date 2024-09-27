@@ -331,7 +331,7 @@ def get_image_pair():
     pair = get_biased_pair()
     
     response = JSONResponse(content={"image1": pair[0], "image2": pair[1]})
-    response.headers["Cache-Control"] = "max-age=15"
+    response.headers["Cache-Control"] = "max-age=17"
 
     return response
 
