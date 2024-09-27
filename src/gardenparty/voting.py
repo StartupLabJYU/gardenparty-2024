@@ -252,6 +252,22 @@ def get_biased_pair():
     biased_pair = np.random.choice(image_paths, [1,2], p=weights, replace=False)
     return biased_pair
 
+@app.get('/pair.json')
+def get_image_pair():
+    pair, *_ = get_biased_pair()
+    return {"image1": pair[0], "image2": pair[1]}
+
+
+@app.get('/fullscreen')
+def page_fs(request: Request):
+    response = templates.TemplateResponse(
+        name="fullscreen.html", 
+        context={
+            "request": request
+        }
+    )
+    return response
+
 
 @app.get('/gallery')
 def gallery(request: Request):
