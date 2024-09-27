@@ -109,6 +109,9 @@
         .after figcaption {
             display: none;
         }
+        .figure img {
+            filter: brightness(1.3);
+        }
     </style>
 </head>
 <body>
@@ -131,6 +134,10 @@
                     <figcaption>AI piirros</figcaption>
                 </figure>
             </img-comparison-slider>
+            <div class="info">
+                <a href="{{ original_urls[loop.index0] }}" download>🧑 Alkuperäinen</a><br>
+                <a href="{{ generated_urls[loop.index0] }}" download>🤖 AI:n täydentämä</a>
+            </div>
         </div>
         {% endfor %}
     </div>

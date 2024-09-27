@@ -89,9 +89,6 @@ voting_responses = [
 ]
 
 
-
-
-
 @app.on_event("startup")
 def startup_event():
     # Ensure CSV file exists and has the header
@@ -356,11 +353,30 @@ def page_fs(request: Request):
     response = templates.TemplateResponse(
         name="fullscreen.html", 
         context={
-            "request": request
+            "request": request,
+            "json": "pair.json"
         }
     )
     return response
 
+
+@app.get('/latest')
+def page_latest(request: Request):
+    response = templates.TemplateResponse(
+        name="fullscreen.html", 
+        context={
+            "request": request,
+            "json": "latest.json"
+        }
+    )
+    return response
+
+@app.get('/latest.json')
+def get_latest():
+    images = list(Path(IMAGES_DIR).glob('*'))
+    images = sorted(images, key=os.path.getmtime, reverse=True)
+    response = JSONResponse(content={"image1": str(images[0]), "image2": str(images[1])})
+    return response
 
 @app.get('/gallery')
 def gallery(request: Request):
@@ -445,12 +461,14 @@ def results(request: Request):
     # results = sort_by_results(results)
 
     images = list(Path(IMAGES_DIR).glob('*'))
+    # Sort images by creation time
+    images = sorted(images, key=os.path.getmtime, reverse=True)
 
     # Compare the list of images to list of accepted images
     generated_urls = [f"/generated_images/{img.name}" for img in images]
     original_urls = [f"/original_images/{img.name}" for img in images] 
 
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         name="results.html", 
         context={
             "request": request,
@@ -459,3 +477,6 @@ def results(request: Request):
             "generated_urls": generated_urls
         }
     )
+    response.headers["Cache-Control"] = "max-age=60"
+    return response
+
