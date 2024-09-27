@@ -328,7 +328,22 @@ def get_biased_pair():
 
 @app.get('/pair.json')
 def get_image_pair():
-    pair = get_biased_pair()
+    
+    weights = []
+    images = []
+    for image in Path(IMAGES_DIR).glob('*'):
+        images.append(f"/generated_images/{image.name}")
+        # file modification time in seconds
+        mtime = os.path.getmtime(image)
+        # current time in seconds
+        weights.append(mtime)
+
+    # normalize weights
+    weights = np.array(weights)
+    weights = weights - weights.min()
+    weights = weights / weights.sum()
+    # Select two images with probability proportional to the time since last modification
+    pair = np.random.choice(images, size=2, replace=False, p=weights/weights.sum())
     
     response = JSONResponse(content={"image1": pair[0], "image2": pair[1]})
     response.headers["Cache-Control"] = "max-age=17"
