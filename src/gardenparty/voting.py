@@ -324,7 +324,7 @@ def get_biased_pair():
 
 @app.get('/pair.json')
 def get_image_pair():
-    pair, *_ = get_biased_pair()
+    pair = get_biased_pair()
     return {"image1": pair[0], "image2": pair[1]}
 
 
