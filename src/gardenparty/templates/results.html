@@ -112,14 +112,52 @@
         .figure img {
             filter: brightness(1.3);
         }
+
+        .sponsors {
+            list-style-type: none;  /* Remove default bullet points */
+            padding: 0;             /* Remove default padding */
+            margin: 0;              /* Remove default margin */
+        }
+        .sponsors a {
+            align-items: center;
+            text-decoration: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        .sponsors img {
+            vertical-align: middle;
+            height: 1.2em;
+            background-color: white;
+            margin-right: 0.8em;
+        }
+        .sponsors li {
+            display: inline;        /* Display list items inline */
+            margin-right: 1em;     /* Add space between items */
+        }
+        .sponsors li:not(:last-child)::after {
+            content: "|";           /* Add a separator after each list item except the last */
+            margin-left: 10px;      /* Space between the item and the separator */
+        }
     </style>
 </head>
 <body>
-
-    <h1 style="text-align: center;">Kuvagalleria</h1>
-    <p class="instruction">
-        Kuvien vertailu onnistuu raahaamalla kuvien päällä näkyvää viivaa.
-    </p>
+    <header>
+        <h1 style="text-align: center;">Kuvagalleria</h1>
+        <div class="instruction">
+            <p>
+            Kuvien vertailu onnistuu raahaamalla kuvien päällä näkyvää viivaa.
+            </p>
+        </div>
+        <ul class="sponsors">
+            <li><a href="https://www.jyu.fi/fi">
+                <img src="/static/jyu.svg" style="height: 1.2em;">Jyväskylän yliopisto</a>
+            </li>
+            <li><a href="https://www.jyu.fi/fi">Informatioteknologian Tiedekunta</a></li>
+            <li><a href="">
+                <img src="/static/eu.svg" style="height: 1.2em;">Euroopan unioni</a>
+            </li>
+        </ul>
+    </header>
     <div class="gallery-container">
         {% for url in original_urls %}
         <div class="image-card">
