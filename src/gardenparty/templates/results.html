@@ -142,7 +142,7 @@
 </head>
 <body>
     <header>
-        <h1 style="text-align: center;">Kuvagalleria</h1>
+        <h1 style="text-align: center;">Tutkijoiden yö: Kuvagalleria</h1>
         <div class="instruction">
             <p>
             Kuvien vertailu onnistuu raahaamalla kuvien päällä näkyvää viivaa.
@@ -150,11 +150,11 @@
         </div>
         <ul class="sponsors">
             <li><a href="https://www.jyu.fi/fi">
-                <img src="/static/jyu.svg" style="height: 1.2em;">Jyväskylän yliopisto</a>
+                <img src="/static/jyu.svg" alt="Jyväskylän yliopisto"></a>
             </li>
             <li><a href="https://www.jyu.fi/fi">Informatioteknologian Tiedekunta</a></li>
-            <li><a href="">
-                <img src="/static/eu.svg" style="height: 1.2em;">Euroopan unioni</a>
+            <li><a href="" class="styled-link">
+                <img src="/static/eu.svg"></a>
             </li>
         </ul>
     </header>
@@ -173,8 +173,8 @@
                 </figure>
             </img-comparison-slider>
             <div class="info">
-                <a href="{{ original_urls[loop.index0] }}" download>🧑 Alkuperäinen</a><br>
-                <a href="{{ generated_urls[loop.index0] }}" download>🤖 AI:n täydentämä</a>
+                <a href="{{ original_urls[loop.index0] }}" download class="styled-link">🧑 Alkuperäinen</a><br>
+                <a href="{{ generated_urls[loop.index0] }}" download class="styled-link">🤖 AI:n täydentämä</a>
             </div>
         </div>
         {% endfor %}
